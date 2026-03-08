@@ -8,13 +8,12 @@ import { OtpRepository } from "./otp.repository"
 import { mapUserToResponseDTO } from "../user/mappers/user.mapper"
 import { UserResponseDTO } from "../user/dto/user.response.dto"
 import { OTP_EXPIRY_MINUTES, SALT_ROUNDS } from "../../constants/auth.constants"
+import { UserStatus } from "../../enums/userStatus.enum"
 
 export class AuthService {
 
   private userRepository = new UserRepository()
   private otpRepository = new OtpRepository()
-
-  private readonly SALT_ROUNDS = 10
 
   // --------------------------------------------------
   // Register
@@ -24,7 +23,7 @@ export class AuthService {
     email: string
     password: string
     role: Role
-  }): Promise<UserResponseDTO> {
+  }): Promise<{ message: string }> {
 
     const existingUser = await this.userRepository.findByEmail(data.email)
 
@@ -36,10 +35,15 @@ export class AuthService {
 
     const newUser = await this.userRepository.createUser({
       ...data,
-      password: hashedPassword
+      password: hashedPassword,
+      status: UserStatus.PENDING
     })
 
-    return mapUserToResponseDTO(newUser)
+    await this.sendOtp(newUser.email)
+
+    return {
+      message: "OTP sent to email for verification"
+    }
   }
 
   // --------------------------------------------------
@@ -54,6 +58,10 @@ export class AuthService {
 
     if (!user) {
       throw new AppError("Invalid email or password", 401)
+    }
+
+    if (user.status !== UserStatus.ACTIVE) {
+      throw new AppError("Please verify your email before login", 403)
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password)
@@ -76,22 +84,32 @@ export class AuthService {
   // --------------------------------------------------
   // Send OTP
   // --------------------------------------------------
-  async sendOtp(email: string): Promise<string> {
+  async sendOtp(email: string): Promise<void> {
 
     const otp = generateOTP()
     const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000)
 
     await this.otpRepository.saveOtp(email, otp, expiresAt)
 
-    return otp
+    // TODO: replace with email service later
+    console.log("OTP:", otp)
   }
 
   // --------------------------------------------------
-  // Verify OTP
+  // Verify OTP (email verification)
   // --------------------------------------------------
   async verifyOtp(email: string, otp: string): Promise<boolean> {
 
-    const otpRecord = await this.validateOtp(email, otp)
+    await this.validateOtp(email, otp)
+
+    const user = await this.userRepository.findByEmail(email)
+
+    if (!user) {
+      throw new AppError("User not found", 404)
+    }
+
+    user.status = UserStatus.ACTIVE
+    await user.save()
 
     await this.otpRepository.deleteOtp(email)
 
@@ -142,4 +160,5 @@ export class AuthService {
 
     return otpRecord
   }
+
 }
