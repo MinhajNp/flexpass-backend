@@ -3,7 +3,7 @@ import { AuthService } from "./auth.service"
 import { asyncHandler } from "../../utils/asyncHandler"
 import { sendResponse } from "../../utils/response"
 import { registerSchema, loginSchema } from "./auth.validation"
-import { sendOtpSchema, verifyOtpSchema } from "./auth.validation"
+import { sendOtpSchema, verifyOtpSchema, resetPasswordSchema } from "./auth.validation"
 
 const authService = new AuthService()
 
@@ -53,6 +53,17 @@ static verifyOtp = asyncHandler(async (req: Request, res: Response) => {
   await authService.verifyOtp(email, otp)
 
   sendResponse(res, 200, "OTP verified successfully")
+
+})
+
+// Reset-Password-Controller-----------------------------------------------------------------------------
+static resetPassword = asyncHandler(async (req: Request, res: Response) => {
+
+  const { email, otp, newPassword } = resetPasswordSchema.parse(req.body)
+
+  await authService.resetPassword(email, otp, newPassword)
+
+  sendResponse(res, 200, "Password reset successful")
 
 })
 

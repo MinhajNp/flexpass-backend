@@ -4,12 +4,13 @@ import { IUser } from "../user/user.entity"
 import { AppError } from "../../utils/AppError"
 import { Role } from "../../enums/role.enum"
 import { generateToken } from "../../utils/jwt"
-import { Otp } from "./otp.entity"
 import { generateOTP } from "../../utils/otp"
+import { OtpRepository } from "./otp.repository"
 
 export class AuthService {
 
   private userRepository = new UserRepository()
+  private otpRepository = new OtpRepository()
 
  //   Registration------------------------------------------------------------------------------
   async register(data: {                   
@@ -65,11 +66,7 @@ async sendOtp(email: string) {
 
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
 
-  await Otp.findOneAndUpdate(
-    { email },
-    { otp, expiresAt },
-    { upsert: true, new: true }
-  )
+  await this.otpRepository.saveOtp(email, otp, expiresAt)
 
   return otp
 }
@@ -77,7 +74,7 @@ async sendOtp(email: string) {
 // Verify-OTP-----------------------------------------------------------------------------------------
 async verifyOtp(email: string, otp: string) {
 
-  const otpRecord = await Otp.findOne({ email })
+  const otpRecord = await this.otpRepository.findByEmail(email)
 
   if (!otpRecord) {
     throw new AppError("OTP not found or expired", 400)
@@ -87,7 +84,36 @@ async verifyOtp(email: string, otp: string) {
     throw new AppError("Invalid OTP", 400)
   }
 
-  await Otp.deleteOne({ email })
+  await this.otpRepository.deleteOtp(email)
+
+  return true
+}
+
+// Reset-Password---------------------------------------------------------------------------------------
+async resetPassword(email: string, otp: string, newPassword: string) {
+
+  const otpRecord = await this.otpRepository.findByEmail(email)
+
+  if (!otpRecord) {
+    throw new AppError("OTP not found or expired", 400)
+  }
+
+  if (otpRecord.otp !== otp) {
+    throw new AppError("Invalid OTP", 400)
+  }
+
+  const user = await this.userRepository.findByEmail(email)
+
+  if (!user) {
+    throw new AppError("User not found", 404)
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+  user.password = hashedPassword
+  await user.save()
+
+  await this.otpRepository.deleteOtp(email)
 
   return true
 }
