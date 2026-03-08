@@ -5,9 +5,7 @@ const router = Router()
 
 router.post("/register", AuthController.register)
 
-router.post("/login", (req, res) => {
-  res.send("login route working")
-})
+router.post("/login", AuthController.login)
 
 router.post("/verify-otp", (req, res) => {
   res.send("verify otp route working")

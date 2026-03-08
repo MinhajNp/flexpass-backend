@@ -8,7 +8,8 @@ export class AuthService {
 
   private userRepository = new UserRepository()
 
-  async register(data: {
+ //   Registration------------------------------------------------------------------------------
+  async register(data: {                   
     name: string
     email: string
     password: string
@@ -30,5 +31,23 @@ export class AuthService {
 
     return newUser
   }
+
+  //   Login-----------------------------------------------------------------------------------------
+    async login(data: { email: string; password: string }): Promise<IUser> {
+
+  const user = await this.userRepository.findByEmail(data.email)
+
+  if (!user) {
+    throw new AppError("Invalid email or password", 401)
+  }
+
+  const isPasswordValid = await bcrypt.compare(data.password, user.password)
+
+  if (!isPasswordValid) {
+    throw new AppError("Invalid email or password", 401)
+  }
+
+  return user
+}
 
 }
