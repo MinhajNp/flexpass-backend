@@ -3,6 +3,7 @@ import { UserRepository } from "../user/user.repository"
 import { IUser } from "../user/user.entity"
 import { AppError } from "../../utils/AppError"
 import { Role } from "../../enums/role.enum"
+import { generateToken } from "../../utils/jwt"
 
 export class AuthService {
 
@@ -33,7 +34,7 @@ export class AuthService {
   }
 
   //   Login-----------------------------------------------------------------------------------------
-    async login(data: { email: string; password: string }): Promise<IUser> {
+    async login(data: { email: string; password: string }): Promise<{ user: IUser; token: string }>{
 
   const user = await this.userRepository.findByEmail(data.email)
 
@@ -46,8 +47,13 @@ export class AuthService {
   if (!isPasswordValid) {
     throw new AppError("Invalid email or password", 401)
   }
+  
+  const token = generateToken({
+    userId: user._id,
+    role: user.role
+  })
 
-  return user
+  return { user, token }
 }
 
 }

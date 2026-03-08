@@ -25,9 +25,9 @@ static login = asyncHandler(async (req: Request, res: Response) => {
 
   const validatedData = loginSchema.parse(req.body)
 
-  const user = await authService.login(validatedData)
+  const result = await authService.login(validatedData)
 
-  sendResponse(res, 200, "Login successful", user)
+  sendResponse(res, 200, "Login successful", result)
 
 })
 
