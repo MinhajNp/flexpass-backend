@@ -34,6 +34,18 @@ export class GymService {
     return gyms.map(mapGymToResponseDTO)
   }
 
+   // --------------------------------------------------
+  // Get Approved Gyms (Admin)
+  // --------------------------------------------------
+  
+  async getApprovedGyms(): Promise<GymResponseDTO[]> {
+
+  const gyms = await this.gymRepository.findApprovedGyms()
+
+  return gyms.map(mapGymToResponseDTO)
+
+}
+
   // --------------------------------------------------
   // Approve Gym (Admin)
   // --------------------------------------------------

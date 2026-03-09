@@ -8,16 +8,21 @@ const router = Router()
 
 const gymController = new GymController()
 
-
-
 router.post("/apply",gymController.applyGym)
 router.patch("/:id/reapply",gymController.reapplyGym)
+
+router.get(
+  "/admin/gyms/applications",
+  authMiddleware,
+  authorizeRoles(Role.PLATFORM_ADMIN),
+  gymController.getPendingGyms
+)
 
 router.get(
   "/admin/gyms",
   authMiddleware,
   authorizeRoles(Role.PLATFORM_ADMIN),
-  gymController.getPendingGyms
+  gymController.getApprovedGyms
 )
 
 router.patch(

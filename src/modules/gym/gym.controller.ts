@@ -32,6 +32,18 @@ export class GymController {
   })
 
   // --------------------------------------------------
+  // Get Approved Gyms (Admin)
+  // --------------------------------------------------
+
+  getApprovedGyms = asyncHandler(async (req: Request, res: Response) => {
+
+    const result = await this.gymService.getApprovedGyms()
+
+    sendResponse(res, 200, "Gyms fetched successfully", result)
+
+   })
+
+  // --------------------------------------------------
   // Approve Gym
   // --------------------------------------------------
 
