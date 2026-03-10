@@ -1,7 +1,8 @@
 import { Gym, IGym } from "./gym.entity"
 import { GymStatus } from "../../enums/gymStatus.enum"
+import { IGymRepository } from "../../interfaces/IGymRepository"
 
-export class GymRepository {
+export class GymRepository implements IGymRepository {
 
   async createGym(data: Partial<IGym>): Promise<IGym> {
     const gym = new Gym(data)

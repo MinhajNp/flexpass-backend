@@ -1,6 +1,7 @@
 import { User, IUser } from "./user.entity"
+import { IUserRepository } from "../../interfaces/IUserRepository"
 
-export class UserRepository {
+export class UserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<IUser | null> {
     return User.findOne({ email })
@@ -13,6 +14,10 @@ export class UserRepository {
 
   async findAllUsers() {
     return User.find()
+  }
+
+  async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
+    return await User.findByIdAndUpdate(id, data, { new: true })
   }
 
 }

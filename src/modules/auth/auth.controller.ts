@@ -4,8 +4,13 @@ import { asyncHandler } from "../../utils/asyncHandler"
 import { sendResponse } from "../../utils/response"
 import { registerSchema, loginSchema } from "./auth.validation"
 import { sendOtpSchema, verifyOtpSchema, resetPasswordSchema } from "./auth.validation"
+import { UserRepository } from "../user/user.repository"
+import { OtpRepository } from "./otp.repository"
 
-const authService = new AuthService()
+const userRepository = new UserRepository()
+const otpRepository = new OtpRepository()
+
+const authService = new AuthService(userRepository, otpRepository)
 
 export class AuthController {
 

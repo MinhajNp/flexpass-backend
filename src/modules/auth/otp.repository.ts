@@ -14,7 +14,7 @@ export class OtpRepository {
     )
   }
 
-  async deleteOtp(email: string) {
+  async deleteOtp(email: string):Promise<any> {
     return Otp.deleteOne({ email })
   }
 
