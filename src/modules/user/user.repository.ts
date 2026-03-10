@@ -11,4 +11,8 @@ export class UserRepository {
     return user.save()
   }
 
+  async findAllUsers() {
+    return User.find()
+  }
+
 }
