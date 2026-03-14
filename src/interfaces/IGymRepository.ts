@@ -1,5 +1,4 @@
 import { IGym } from "../modules/gym/gym.entity"
-import { GymStatus } from "../enums/gymStatus.enum"
 
 export interface IGymRepository {
   createGym(data: Partial<IGym>): Promise<IGym>

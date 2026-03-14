@@ -1,5 +1,7 @@
+import { injectable } from "inversify"
 import { Otp, IOtp } from "./otp.entity"
 
+@injectable()
 export class OtpRepository {
 
   async findByEmail(email: string): Promise<IOtp | null> {

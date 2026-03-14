@@ -3,9 +3,11 @@ import { GymController } from "./gym.controller"
 import { authMiddleware } from "../../middlewares/auth.middleware"
 import { authorizeRoles } from "../../middlewares/role.middleware"
 import { Role } from "../../enums/role.enum"
+import { TYPES } from "../../types/type"
+import { container } from "../../container/container"
 
 const router = Router()
-const gymController = new GymController()
+const gymController = container.get<GymController>(TYPES.GymController);
 
 // --------------------------------------------------
 // Gym Application Routes

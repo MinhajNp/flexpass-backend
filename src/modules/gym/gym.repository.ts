@@ -1,7 +1,9 @@
 import { Gym, IGym } from "./gym.entity"
 import { GymStatus } from "../../enums/gymStatus.enum"
 import { IGymRepository } from "../../interfaces/IGymRepository"
+import { injectable } from "inversify"
 
+@injectable()
 export class GymRepository implements IGymRepository {
 
   async createGym(data: Partial<IGym>): Promise<IGym> {
