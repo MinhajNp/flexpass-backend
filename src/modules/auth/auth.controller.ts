@@ -1,8 +1,8 @@
 import { Request, Response } from "express"
 import { inject, injectable } from "inversify"
 
-import { asyncHandler } from "../../utils/asyncHandler"
-import { sendResponse } from "../../utils/response"
+import { asyncHandler } from "../../shared/utils/asyncHandler"
+import { sendResponse } from "../../shared/utils/response"
 
 import {
   registerSchema,
@@ -12,8 +12,8 @@ import {
   resetPasswordSchema
 } from "./auth.validation"
 
-import { IAuthService } from "../../interfaces/services/IAuthService"
-import { TYPES } from "../../container/types"
+import { IAuthService } from "./interfaces/IAuthService"
+import { TYPES } from "../../core/container/types"
 
 
 @injectable()

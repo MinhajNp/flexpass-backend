@@ -1,7 +1,7 @@
 import { Router } from "express"
 
-import container from "../../container/container"
-import { TYPES } from "../../container/types"
+import container from "../../core/container/container"
+import { TYPES } from "../../core/container/types"
 
 import { AuthController } from "./auth.controller"
 

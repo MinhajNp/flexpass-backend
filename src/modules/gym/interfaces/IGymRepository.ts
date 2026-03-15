@@ -1,4 +1,4 @@
-import { IGym } from "../modules/gym/gym.entity"
+import { IGym } from "../gym.entity"
 
 export interface IGymRepository {
   createGym(data: Partial<IGym>): Promise<IGym>

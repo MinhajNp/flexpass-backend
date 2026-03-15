@@ -1,10 +1,10 @@
 import { Router } from "express"
 import { AdminController } from "./admin.controller"
-import { authMiddleware } from "../../middlewares/auth.middleware"
-import { authorizeRoles } from "../../middlewares/role.middleware"
-import { Role } from "../../enums/role.enum"
-import { TYPES } from "../../container/types"
-import container from "../../container/container"
+import { authMiddleware } from "../../shared/middlewares/auth.middleware"
+import { authorizeRoles } from "../../shared/middlewares/role.middleware"
+import { Role } from "../../shared/enums/role.enum"
+import { TYPES } from "../../core/container/types"
+import container from "../../core/container/container"
 
 const router = Router()
 const adminController = container.get<AdminController>(TYPES.AdminController);

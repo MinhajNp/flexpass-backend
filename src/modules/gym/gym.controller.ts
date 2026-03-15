@@ -1,10 +1,10 @@
 import { Request, Response } from "express"
-import { asyncHandler } from "../../utils/asyncHandler"
-import { sendResponse } from "../../utils/response"
+import { asyncHandler } from "../../shared/utils/asyncHandler"
+import { sendResponse } from "../../shared/utils/response"
 
 import { inject, injectable } from "inversify"
-import { IGymService } from "../../interfaces/services/IGymService"
-import { TYPES } from "../../container/types"
+import { IGymService } from "./interfaces/IGymService"
+import { TYPES } from "../../core/container/types"
 
 @injectable()
 export class GymController {

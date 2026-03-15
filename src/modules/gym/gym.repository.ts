@@ -1,8 +1,8 @@
 import { injectable } from "inversify"
 
 import { Gym, IGym } from "./gym.entity"
-import { GymStatus } from "../../enums/gymStatus.enum"
-import { IGymRepository } from "../../interfaces/IGymRepository"
+import { GymStatus } from "../../shared/enums/gymStatus.enum"
+import { IGymRepository } from "./interfaces/IGymRepository"
 
 @injectable()
 export class GymRepository implements IGymRepository {

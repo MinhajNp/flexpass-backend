@@ -1,5 +1,5 @@
 
-import { IOtp } from "../modules/auth/otp.entity"
+import { IOtp } from "./otp.entity"
 
 export interface IOtpRepository {
   findByEmail(email: string): Promise<IOtp | null>

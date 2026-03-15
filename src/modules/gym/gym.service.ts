@@ -2,14 +2,14 @@ import { ApplyGymDTO } from "./dto/apply.gym.dto"
 import { GymResponseDTO } from "./dto/gym.response.dto"
 import { mapGymToResponseDTO } from "./mappers/gym.mapper"
 
-import { GymStatus } from "../../enums/gymStatus.enum"
-import { AppError } from "../../utils/AppError"
+import { GymStatus } from "../../shared/enums/gymStatus.enum"
+import { AppError } from "../../shared/utils/AppError"
 
-import { IGymService } from "../../interfaces/services/IGymService"
-import { IGymRepository } from "../../interfaces/IGymRepository"
+import { IGymService } from "./interfaces/IGymService"
+import { IGymRepository } from "./interfaces/IGymRepository"
 
 import { inject, injectable } from "inversify"
-import { TYPES } from "../../container/types"
+import { TYPES } from "../../core/container/types"
 
 @injectable()
 export class GymService implements IGymService {

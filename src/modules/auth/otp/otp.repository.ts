@@ -1,6 +1,6 @@
 import { injectable } from "inversify"
 import { Otp, IOtp } from "./otp.entity"
-import { IOtpRepository } from "../../interfaces/IOtpRepository"
+import { IOtpRepository } from "./IOtpRepository"
 
 @injectable()
 export class OtpRepository implements IOtpRepository {

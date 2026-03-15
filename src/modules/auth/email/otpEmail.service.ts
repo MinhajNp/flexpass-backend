@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer"
 import { injectable } from "inversify"
 import { IOtpEmailService } from "./IOtpEmailService"
-import { env } from "../../../config/env"
+import { env } from "../../../core/config/env"
 
 @injectable()
 export class OtpEmailService implements IOtpEmailService {

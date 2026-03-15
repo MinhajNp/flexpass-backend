@@ -1,8 +1,8 @@
 import "reflect-metadata"
 import app from "./app"
-import { env } from "./config/env"
-import { connectDB } from "./config/db"
-import { logger } from "./utils/logger"
+import { env } from "./core/config/env"
+import { connectDB } from "./core/config/db"
+import { logger } from "./shared/utils/logger"
 
 const startServer = async () => {
   await connectDB()

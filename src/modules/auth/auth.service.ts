@@ -1,19 +1,19 @@
 import bcrypt from "bcrypt"
 import { inject, injectable } from "inversify"
 
-import { AppError } from "../../utils/AppError"
-import { generateToken } from "../../utils/jwt"
-import { generateOTP } from "../../utils/otp"
+import { AppError } from "../../shared/utils/AppError"
+import { generateToken } from "./jwt"
+import { generateOTP } from "./otp"
 
-import { UserStatus } from "../../enums/userStatus.enum"
+import { UserStatus } from "../../shared/enums/userStatus.enum"
 
-import { OTP_EXPIRY_MINUTES, SALT_ROUNDS } from "../../constants/auth.constants"
+import { OTP_EXPIRY_MINUTES, SALT_ROUNDS } from "../../shared/constants/auth.constants"
 
-import { IUserRepository } from "../../interfaces/IUserRepository"
-import { IOtpRepository } from "../../interfaces/IOtpRepository"
-import { IAuthService } from "../../interfaces/services/IAuthService"
+import { IUserRepository } from "../user/interfaces/IUserRepository"
+import { IOtpRepository } from "./otp/IOtpRepository"
+import { IAuthService } from "./interfaces/IAuthService"
 
-import { TYPES } from "../../container/types"
+import { TYPES } from "../../core/container/types"
 
 import { mapUserToResponseDTO } from "../user/mappers/user.mapper"
 import { UserResponseDTO } from "../user/dto/user.response.dto"

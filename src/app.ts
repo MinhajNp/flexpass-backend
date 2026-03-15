@@ -1,7 +1,7 @@
 import express from "express"
 import cors from "cors"
 import { registerRoutes } from "./routes"
-import { errorMiddleware } from "./middlewares/error.middleware"
+import { errorMiddleware } from "./shared/middlewares/error.middleware"
 
 const app = express()
 

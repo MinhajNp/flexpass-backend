@@ -1,5 +1,5 @@
-import { Role } from "../../enums/role.enum"
-import { UserResponseDTO } from "../../modules/user/dto/user.response.dto"
+import { Role } from "../../../shared/enums/role.enum"
+import { UserResponseDTO } from "../../user/dto/user.response.dto"
 
 export interface IAuthService {
     register(data: {

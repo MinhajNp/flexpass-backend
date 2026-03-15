@@ -1,5 +1,5 @@
-import { ApplyGymDTO } from "../../modules/gym/dto/apply.gym.dto";
-import { GymResponseDTO } from "../../modules/gym/dto/gym.response.dto";
+import { ApplyGymDTO } from "../dto/apply.gym.dto";
+import { GymResponseDTO } from "../dto/gym.response.dto";
 
 export interface IGymService{
     applyGym(data: ApplyGymDTO): Promise<GymResponseDTO>

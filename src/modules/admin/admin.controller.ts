@@ -1,9 +1,9 @@
 import { Request, Response } from "express"
-import { asyncHandler } from "../../utils/asyncHandler"
-import { sendResponse } from "../../utils/response"
-import { IAdminService } from "../../interfaces/services/IAdminService"
+import { asyncHandler } from "../../shared/utils/asyncHandler"
+import { sendResponse } from "../../shared/utils/response"
+import { IAdminService } from "./interfaces/IAdminService"
 import { inject, injectable } from "inversify"
-import { TYPES } from "../../container/types"
+import { TYPES } from "../../core/container/types"
 
 
 

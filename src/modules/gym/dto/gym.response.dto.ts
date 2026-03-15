@@ -1,4 +1,4 @@
-import { GymStatus } from "../../../enums/gymStatus.enum"
+import { GymStatus } from "../../../shared/enums/gymStatus.enum"
 
 export interface GymResponseDTO {
   id: string
