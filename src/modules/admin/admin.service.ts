@@ -3,8 +3,8 @@ import { mapUserToResponseDTO } from "../user/mappers/user.mapper"
 import { UserResponseDTO } from "../user/dto/user.response.dto"
 import { inject, injectable } from "inversify"
 import { IUserRepository } from "../../interfaces/IUserRepository"
-import { TYPES } from "../../types/type"
-import { IAdminService } from "../../interfaces/services/admin.service.interface"
+import { TYPES } from "../../container/types"
+import { IAdminService } from "../../interfaces/services/IAdminService"
 
 @injectable()
 export class AdminService implements IAdminService {

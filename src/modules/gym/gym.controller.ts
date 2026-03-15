@@ -1,18 +1,18 @@
 import { Request, Response } from "express"
-import { GymService } from "./gym.service"
 import { asyncHandler } from "../../utils/asyncHandler"
 import { sendResponse } from "../../utils/response"
+
 import { inject, injectable } from "inversify"
-import { TYPES } from "../../types/type"
-import { IGymService } from "../../interfaces/services/gym.service.interface"
+import { IGymService } from "../../interfaces/services/IGymService"
+import { TYPES } from "../../container/types"
 
 @injectable()
 export class GymController {
 
   constructor(
     @inject(TYPES.IGymService)
-    private _gymService:IGymService
-  ){}
+    private gymService: IGymService
+  ) {}
 
   // --------------------------------------------------
   // Apply Gym
@@ -20,7 +20,7 @@ export class GymController {
 
   applyGym = asyncHandler(async (req: Request, res: Response) => {
 
-    const result = await this._gymService.applyGym(req.body)
+    const result = await this.gymService.applyGym(req.body)
 
     sendResponse(res, 201, "Gym application submitted successfully", result)
 
@@ -32,7 +32,7 @@ export class GymController {
 
   getPendingGyms = asyncHandler(async (req: Request, res: Response) => {
 
-    const result = await this._gymService.getPendingGyms()
+    const result = await this.gymService.getPendingGyms()
 
     sendResponse(res, 200, "Pending gyms fetched successfully", result)
 
@@ -44,11 +44,11 @@ export class GymController {
 
   getApprovedGyms = asyncHandler(async (req: Request, res: Response) => {
 
-    const result = await this._gymService.getApprovedGyms()
+    const result = await this.gymService.getApprovedGyms()
 
     sendResponse(res, 200, "Gyms fetched successfully", result)
 
-   })
+  })
 
   // --------------------------------------------------
   // Approve Gym
@@ -58,7 +58,7 @@ export class GymController {
 
     const id = req.params.id as string
 
-  const result = await this._gymService.approveGym(id)
+    const result = await this.gymService.approveGym(id)
 
     sendResponse(res, 200, "Gym approved successfully", result)
 
@@ -71,9 +71,9 @@ export class GymController {
   rejectGym = asyncHandler(async (req: Request, res: Response) => {
 
     const id = req.params.id as string
-  const { reason } = req.body
+    const { reason } = req.body
 
-  const result = await this._gymService.rejectGym(id, reason)
+    const result = await this.gymService.rejectGym(id, reason)
 
     sendResponse(res, 200, "Gym rejected successfully", result)
 
@@ -87,7 +87,7 @@ export class GymController {
 
     const id = req.params.id as string
 
-  const result = await this._gymService.reapplyGym(id)
+    const result = await this.gymService.reapplyGym(id)
 
     sendResponse(res, 200, "Gym reapplied successfully", result)
 

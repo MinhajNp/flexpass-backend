@@ -1,10 +1,13 @@
 import { Router } from "express"
+
+import container from "../../container/container"
+import { TYPES } from "../../container/types"
+
 import { AuthController } from "./auth.controller"
-import { container } from "../../container/container";
-import { TYPES } from "../../types/type";
 
 const router = Router()
-const authController = container.get<AuthController>(TYPES.AuthController);
+
+const authController = container.get<AuthController>(TYPES.AuthController)
 
 router.post("/register", authController.register)
 router.post("/login", authController.login)

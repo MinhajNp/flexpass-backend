@@ -1,44 +1,45 @@
 import bcrypt from "bcrypt"
+import { inject, injectable } from "inversify"
 
 import { AppError } from "../../utils/AppError"
-import { Role } from "../../enums/role.enum"
 import { generateToken } from "../../utils/jwt"
 import { generateOTP } from "../../utils/otp"
 
-import { mapUserToResponseDTO } from "../user/mappers/user.mapper"
-import { UserResponseDTO } from "../user/dto/user.response.dto"
+import { UserStatus } from "../../enums/userStatus.enum"
 
 import { OTP_EXPIRY_MINUTES, SALT_ROUNDS } from "../../constants/auth.constants"
-import { UserStatus } from "../../enums/userStatus.enum"
 
 import { IUserRepository } from "../../interfaces/IUserRepository"
 import { IOtpRepository } from "../../interfaces/IOtpRepository"
-import { inject, injectable } from "inversify"
-import { TYPES } from "../../types/type"
-import { IAuthService } from "../../interfaces/services/auth.service.interface"
+import { IAuthService } from "../../interfaces/services/IAuthService"
+
+import { TYPES } from "../../container/types"
+
+import { mapUserToResponseDTO } from "../user/mappers/user.mapper"
+import { UserResponseDTO } from "../user/dto/user.response.dto"
+import { RegisterDTO } from "./dto/auth.register.dto"
+import { LoginDTO } from "./dto/auth.login.dto"
+
 
 
 @injectable()
-export class AuthService implements IAuthService{
+export class AuthService implements IAuthService {
 
   constructor(
     @inject(TYPES.IUserRepository)
-    private _userRepository: IUserRepository,
+    private userRepository: IUserRepository,
+
     @inject(TYPES.IOtpRepository)
-    private _otpRepository: IOtpRepository
+    private otpRepository: IOtpRepository
   ) {}
 
   // --------------------------------------------------
   // Register
   // --------------------------------------------------
-  async register(data: {
-    name: string
-    email: string
-    password: string
-    role: Role
-  }): Promise<{ message: string }> {
 
-    const existingUser = await this._userRepository.findByEmail(data.email)
+  async register(data: RegisterDTO): Promise<{ message: string }> {
+
+    const existingUser = await this.userRepository.findByEmail(data.email)
 
     if (existingUser) {
       throw new AppError("User already exists", 400)
@@ -46,7 +47,7 @@ export class AuthService implements IAuthService{
 
     const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS)
 
-    const newUser = await this._userRepository.createUser({
+    const newUser = await this.userRepository.createUser({
       ...data,
       password: hashedPassword,
       status: UserStatus.PENDING
@@ -62,12 +63,10 @@ export class AuthService implements IAuthService{
   // --------------------------------------------------
   // Login
   // --------------------------------------------------
-  async login(data: {
-    email: string
-    password: string
-  }): Promise<{ user: UserResponseDTO; token: string }> {
 
-    const user = await this._userRepository.findByEmail(data.email)
+  async login(data: LoginDTO): Promise<{ user: UserResponseDTO; token: string }> {
+
+    const user = await this.userRepository.findByEmail(data.email)
 
     if (!user) {
       throw new AppError("Invalid email or password", 401)
@@ -97,6 +96,7 @@ export class AuthService implements IAuthService{
   // --------------------------------------------------
   // Send OTP
   // --------------------------------------------------
+
   async sendOtp(email: string): Promise<void> {
 
     const otp = generateOTP()
@@ -105,15 +105,16 @@ export class AuthService implements IAuthService{
       Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000
     )
 
-    await this._otpRepository.saveOtp(email, otp, expiresAt)
+    await this.otpRepository.saveOtp(email, otp, expiresAt)
 
-    // temporary until email service added
+    // temporary until email service is implemented
     console.log("OTP:", otp)
   }
 
   // --------------------------------------------------
-  // Verify OTP (email verification)
+  // Verify OTP
   // --------------------------------------------------
+
   async verifyOtp(
     email: string,
     otp: string
@@ -121,17 +122,17 @@ export class AuthService implements IAuthService{
 
     await this.validateOtp(email, otp)
 
-    const user = await this._userRepository.findByEmail(email)
+    const user = await this.userRepository.findByEmail(email)
 
     if (!user) {
       throw new AppError("User not found", 404)
     }
 
-    await this._userRepository.updateUser(user._id.toString(), {
+    await this.userRepository.updateUser(user._id.toString(), {
       status: UserStatus.ACTIVE
     })
 
-    await this._otpRepository.deleteOtp(email)
+    await this.otpRepository.deleteOtp(email)
 
     return {
       message: "Email verified successfully"
@@ -141,6 +142,7 @@ export class AuthService implements IAuthService{
   // --------------------------------------------------
   // Reset Password
   // --------------------------------------------------
+
   async resetPassword(
     email: string,
     otp: string,
@@ -149,7 +151,7 @@ export class AuthService implements IAuthService{
 
     await this.validateOtp(email, otp)
 
-    const user = await this._userRepository.findByEmail(email)
+    const user = await this.userRepository.findByEmail(email)
 
     if (!user) {
       throw new AppError("User not found", 404)
@@ -157,11 +159,11 @@ export class AuthService implements IAuthService{
 
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS)
 
-    await this._userRepository.updateUser(user._id.toString(), {
+    await this.userRepository.updateUser(user._id.toString(), {
       password: hashedPassword
     })
 
-    await this._otpRepository.deleteOtp(email)
+    await this.otpRepository.deleteOtp(email)
 
     return {
       message: "Password reset successfully"
@@ -171,9 +173,10 @@ export class AuthService implements IAuthService{
   // --------------------------------------------------
   // OTP Validation Helper
   // --------------------------------------------------
-  private async validateOtp(email: string, otp: string) {
 
-    const otpRecord = await this._otpRepository.findByEmail(email)
+  private async validateOtp(email: string, otp: string): Promise<void> {
+
+    const otpRecord = await this.otpRepository.findByEmail(email)
 
     if (!otpRecord) {
       throw new AppError("OTP not found or expired", 400)
@@ -186,8 +189,6 @@ export class AuthService implements IAuthService{
     if (otpRecord.otp !== otp) {
       throw new AppError("Invalid OTP", 400)
     }
-
-    return otpRecord
   }
 
 }

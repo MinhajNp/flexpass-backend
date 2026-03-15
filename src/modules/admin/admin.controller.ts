@@ -1,9 +1,10 @@
 import { Request, Response } from "express"
 import { asyncHandler } from "../../utils/asyncHandler"
 import { sendResponse } from "../../utils/response"
-import { IAdminService } from "../../interfaces/services/admin.service.interface"
+import { IAdminService } from "../../interfaces/services/IAdminService"
 import { inject, injectable } from "inversify"
-import { TYPES } from "../../types/type"
+import { TYPES } from "../../container/types"
+
 
 
 @injectable()
