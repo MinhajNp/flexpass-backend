@@ -9,7 +9,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string(),
   OTP_EXPIRY: z.string(),
   EMAIL_USER: z.string(),
-  EMAIL_PASS: z.string()
+  EMAIL_PASS: z.string(),
+  FRONTEND_URL: z.string()
 })
 
 const parsed = envSchema.parse(process.env)
@@ -20,5 +21,6 @@ export const env = {
   JWT_SECRET: parsed.JWT_SECRET,
   OTP_EXPIRY: Number(parsed.OTP_EXPIRY),
   EMAIL_USER: parsed.EMAIL_USER,
-  EMAIL_PASS: parsed.EMAIL_PASS
+  EMAIL_PASS: parsed.EMAIL_PASS,
+  FRONTEND_URL: parsed.FRONTEND_URL
 }

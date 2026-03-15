@@ -11,6 +11,9 @@ export interface IGym extends Document {
   documents: string[]
   status: GymStatus
   rejectionReason?: string
+
+  invitationToken?: string | null
+  invitationTokenExpiresAt?: Date | null
 }
 
 const gymSchema = new Schema<IGym>(
@@ -59,7 +62,16 @@ const gymSchema = new Schema<IGym>(
 
     rejectionReason: {
       type: String
-    }
+    },
+    invitationToken: {
+  type: String,
+  default: null
+},
+
+invitationTokenExpiresAt: {
+  type: Date,
+  default: null
+}
   },
   {
     timestamps: true

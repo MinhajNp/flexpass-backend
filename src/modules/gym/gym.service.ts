@@ -10,14 +10,21 @@ import { IGymRepository } from "./interfaces/IGymRepository"
 
 import { inject, injectable } from "inversify"
 import { TYPES } from "../../core/container/types"
+import { IGymInvitationEmailService } from "./email/IGymInvitationEmailService"
+
+import { generateToken } from "../../shared/utils/token.util"
+import { INVITATION_TOKEN_EXPIRY } from "../../shared/constants/auth.constants"
 
 @injectable()
 export class GymService implements IGymService {
 
   constructor(
-    @inject(TYPES.IGymRepository)
-    private gymRepository: IGymRepository
-  ) {}
+  @inject(TYPES.IGymRepository)
+  private gymRepository: IGymRepository,
+
+  @inject(TYPES.IGymInvitationEmailService)
+  private invitationEmailService: IGymInvitationEmailService
+) {}
 
   // --------------------------------------------------
   // Gym Apply
@@ -61,26 +68,32 @@ export class GymService implements IGymService {
 
   async approveGym(id: string): Promise<GymResponseDTO> {
 
-    const gym = await this.gymRepository.findById(id)
+  const gym = await this.gymRepository.findById(id)
 
-    if (!gym) {
-      throw new AppError("Gym not found", 404)
-    }
-
-    if (gym.status !== GymStatus.PENDING) {
-      throw new AppError("Gym is not pending approval", 400)
-    }
-
-    const updatedGym = await this.gymRepository.updateGym(id, {
-      status: GymStatus.APPROVED
-    })
-
-    if (!updatedGym) {
-      throw new AppError("Gym update failed", 500)
-    }
-
-    return mapGymToResponseDTO(updatedGym)
+  if (!gym) {
+    throw new AppError("Gym not found", 404)
   }
+
+  if (gym.status !== GymStatus.PENDING) {
+    throw new AppError("Gym is not pending approval", 400)
+  }
+
+  const token = generateToken()
+
+  const updatedGym = await this.gymRepository.updateGym(id, {
+    status: GymStatus.APPROVED,
+    invitationToken: token,
+    invitationTokenExpiresAt: new Date(Date.now() + INVITATION_TOKEN_EXPIRY)
+  })
+
+  if (!updatedGym) {
+    throw new AppError("Gym update failed", 500)
+  }
+
+  await this.invitationEmailService.sendInvitation(updatedGym.email, token)
+
+  return mapGymToResponseDTO(updatedGym)
+}
 
   // --------------------------------------------------
   // Reject Gym (Admin)
