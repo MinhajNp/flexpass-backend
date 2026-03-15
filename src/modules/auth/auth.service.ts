@@ -2,8 +2,8 @@ import bcrypt from "bcrypt"
 import { inject, injectable } from "inversify"
 
 import { AppError } from "../../shared/utils/AppError"
-import { generateToken } from "./jwt"
-import { generateOTP } from "./otp"
+import { generateToken } from "../../shared/utils/jwt"
+import { generateOTP } from "../../shared/utils/otp"
 
 import { UserStatus } from "../../shared/enums/userStatus.enum"
 
