@@ -10,6 +10,7 @@ export const TYPES = {
   IUserService: Symbol.for("IUserService"),
   IGymService: Symbol.for("IGymService"),
   IAdminService: Symbol.for("IAdminService"),
+  IOtpEmailService: Symbol.for("IOtpEmailService"),
 
   // Controllers
   AuthController: Symbol.for("AuthController"),

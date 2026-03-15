@@ -20,6 +20,8 @@ import { AdminService } from "../modules/admin/admin.service"
 import { AuthController } from "../modules/auth/auth.controller"
 import { GymController } from "../modules/gym/gym.controller"
 import { AdminController } from "../modules/admin/admin.controller"
+import { IOtpEmailService } from "../modules/auth/email/IOtpEmailService"
+import { OtpEmailService } from "../modules/auth/email/otpEmail.service"
 
 const container = new Container()
 
@@ -35,6 +37,7 @@ container.bind<IOtpRepository>(TYPES.IOtpRepository).to(OtpRepository)
 container.bind<IAuthService>(TYPES.IAuthService).to(AuthService)
 container.bind<IGymService>(TYPES.IGymService).to(GymService)
 container.bind<IAdminService>(TYPES.IAdminService).to(AdminService)
+container.bind<IOtpEmailService>(TYPES.IOtpEmailService).to(OtpEmailService)
 
 
 // controllers

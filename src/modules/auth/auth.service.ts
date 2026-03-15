@@ -19,6 +19,7 @@ import { mapUserToResponseDTO } from "../user/mappers/user.mapper"
 import { UserResponseDTO } from "../user/dto/user.response.dto"
 import { RegisterDTO } from "./dto/auth.register.dto"
 import { LoginDTO } from "./dto/auth.login.dto"
+import { IOtpEmailService } from "./email/IOtpEmailService"
 
 
 
@@ -30,7 +31,11 @@ export class AuthService implements IAuthService {
     private userRepository: IUserRepository,
 
     @inject(TYPES.IOtpRepository)
-    private otpRepository: IOtpRepository
+    private otpRepository: IOtpRepository,
+
+    @inject(TYPES.IOtpEmailService)
+    private otpEmailService: IOtpEmailService
+
   ) {}
 
   // --------------------------------------------------
@@ -107,8 +112,7 @@ export class AuthService implements IAuthService {
 
     await this.otpRepository.saveOtp(email, otp, expiresAt)
 
-    // temporary until email service is implemented
-    console.log("OTP:", otp)
+    await this.otpEmailService.sendOtp(email, otp)
   }
 
   // --------------------------------------------------
