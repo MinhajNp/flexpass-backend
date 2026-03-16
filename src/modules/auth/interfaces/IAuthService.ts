@@ -12,7 +12,7 @@ export interface IAuthService {
     login(data: {
         email: string
         password: string
-    }): Promise<{ user: UserResponseDTO; token: string }>
+    }): Promise<{ user: UserResponseDTO; accessToken: string; refreshToken: string }>
 
     sendOtp(email: string): Promise<void>
 
@@ -26,5 +26,7 @@ export interface IAuthService {
         otp: string,
         newPassword: string
     ): Promise<{ message: string }>
+
+    refreshToken(token: string): Promise<{accessToken: string}> 
 
 }

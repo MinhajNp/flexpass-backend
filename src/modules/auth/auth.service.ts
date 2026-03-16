@@ -2,7 +2,7 @@ import bcrypt from "bcrypt"
 import { inject, injectable } from "inversify"
 
 import { AppError } from "../../shared/utils/AppError"
-import { generateToken } from "../../shared/utils/jwt"
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../../shared/utils/jwt"
 import { generateOTP } from "../../shared/utils/otp"
 
 import { UserStatus } from "../../shared/enums/userStatus.enum"
@@ -70,35 +70,38 @@ export class AuthService implements IAuthService {
   // Login
   // --------------------------------------------------
 
-  async login(data: LoginDTO): Promise<{ user: UserResponseDTO; token: string }> {
+  async login(data: LoginDTO): Promise<{ user: UserResponseDTO; accessToken: string; refreshToken: string }> {
 
-    const user = await this.userRepository.findByEmail(data.email)
+  const user = await this.userRepository.findByEmail(data.email)
 
-    if (!user) {
-      throw new AppError("Invalid email or password", HttpStatus.UNAUTHORIZED)
-    }
-
-    if (user.status !== UserStatus.ACTIVE) {
-      throw new AppError("Please verify your email before login", HttpStatus.FORBIDDEN)
-    }
-
-    const isPasswordValid = await bcrypt.compare(data.password, user.password)
-
-    if (!isPasswordValid) {
-      throw new AppError("Invalid email or password", HttpStatus.UNAUTHORIZED)
-    }
-
-    const token = generateToken({
-      userId: user._id,
-      role: user.role
-    })
-
-    return {
-      user: mapUserToResponseDTO(user),
-      token
-    }
+  if (!user) {
+    throw new AppError("Invalid email or password", HttpStatus.UNAUTHORIZED)
   }
 
+  if (user.status !== UserStatus.ACTIVE) {
+    throw new AppError("Please verify your email before login", HttpStatus.FORBIDDEN)
+  }
+
+  const isPasswordValid = await bcrypt.compare(data.password, user.password)
+
+  if (!isPasswordValid) {
+    throw new AppError("Invalid email or password", HttpStatus.UNAUTHORIZED)
+  }
+
+  const payload = {
+    userId: user._id,
+    role: user.role
+  }
+
+  const accessToken = generateAccessToken(payload)
+  const refreshToken = generateRefreshToken(payload)
+
+  return {
+    user: mapUserToResponseDTO(user),
+    accessToken,
+    refreshToken
+  }
+}
   // --------------------------------------------------
   // Send OTP
   // --------------------------------------------------
@@ -195,5 +198,30 @@ export class AuthService implements IAuthService {
       throw new AppError("Invalid OTP", HttpStatus.BAD_REQUEST)
     }
   }
+
+   // --------------------------------------------------
+  //  Refresh Token
+  // --------------------------------------------------
+  async refreshToken(token: string): Promise<{accessToken: string}> {
+
+  if (!token) {
+    throw new AppError("Refresh token required", HttpStatus.BAD_REQUEST)
+  }
+
+  let payload: any
+
+  try {
+    payload = verifyRefreshToken(token)
+  } catch {
+    throw new AppError("Invalid refresh token", HttpStatus.UNAUTHORIZED)
+  }
+
+  const accessToken = generateAccessToken({
+    id: payload.id,
+    role: payload.role
+  })
+
+  return { accessToken }
+}
 
 }
