@@ -93,4 +93,32 @@ export class GymController {
 
   })
 
+  // --------------------------------------------------
+  // Validate gym invitation link
+  // --------------------------------------------------
+
+  validateInvitation = asyncHandler(async (req: Request, res: Response) => {
+
+  const  token  = req.params.token as string
+
+  const result = await this.gymService.validateInvitation(token)
+
+  sendResponse(res, 200,"Invitation valid",result)
+
+})
+
+// --------------------------------------------------
+  // Complete Registration as Gym admin
+  // --------------------------------------------------
+
+  completeRegistration = asyncHandler(async (req: Request, res: Response) => {
+
+  const { token, name, password } = req.body
+
+  await this.gymService.completeRegistration({ token, name, password })
+
+  sendResponse(res,201,"Gym admin account created successfully")
+
+})
+
 }
