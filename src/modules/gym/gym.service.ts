@@ -4,6 +4,7 @@ import { GymResponseDTO } from "./dto/gym.response.dto"
 import { mapGymToResponseDTO } from "./mappers/gym.mapper"
 
 import { GymStatus } from "../../shared/enums/gymStatus.enum"
+import { HttpStatus } from "../../shared/enums/httpStatus.enum"
 import { AppError } from "../../shared/utils/AppError"
 
 import { IGymService } from "./interfaces/IGymService"
@@ -34,22 +35,18 @@ export class GymService implements IGymService {
   private userRepository: IUserRepository
 ) {}
 
-  // --------------------------------------------------
-  // Gym Apply
-  // --------------------------------------------------
-
- async applyGym(data: ApplyGymDTO): Promise<GymResponseDTO> {
+  async applyGym(data: ApplyGymDTO): Promise<GymResponseDTO> {
 
   const existingGym = await this.gymRepository.findByEmail(data.email)
 
   if (existingGym) {
 
     if (existingGym.status === GymStatus.PENDING) {
-      throw new AppError("Gym application already under review", 400)
+      throw new AppError("Gym application already under review", HttpStatus.BAD_REQUEST)
     }
 
     if (existingGym.status === GymStatus.APPROVED) {
-      throw new AppError("Gym already approved with this email", 400)
+      throw new AppError("Gym already approved with this email", HttpStatus.BAD_REQUEST)
     }
 
     if (existingGym.status === GymStatus.REJECTED) {
@@ -64,7 +61,7 @@ export class GymService implements IGymService {
       )
 
       if (!updatedGym) {
-        throw new AppError("Failed to reapply gym", 500)
+        throw new AppError("Failed to reapply gym", HttpStatus.INTERNAL_SERVER_ERROR)
       }
 
       return mapGymToResponseDTO(updatedGym)
@@ -74,7 +71,7 @@ export class GymService implements IGymService {
   const existingUser = await this.userRepository.findByEmail(data.email)
 
   if (existingUser) {
-    throw new AppError("A user account already exists with this email", 400)
+    throw new AppError("A user account already exists with this email", HttpStatus.BAD_REQUEST)
   }
 
   const gym = await this.gymRepository.createGym({
@@ -84,9 +81,6 @@ export class GymService implements IGymService {
 
   return mapGymToResponseDTO(gym)
 }
-  // --------------------------------------------------
-  // Get Pending Gyms (Admin)
-  // --------------------------------------------------
 
   async getPendingGyms(): Promise<GymResponseDTO[]> {
 
@@ -95,10 +89,6 @@ export class GymService implements IGymService {
     return gyms.map(mapGymToResponseDTO)
   }
 
-  // --------------------------------------------------
-  // Get Approved Gyms (Admin)
-  // --------------------------------------------------
-
   async getApprovedGyms(): Promise<GymResponseDTO[]> {
 
     const gyms = await this.gymRepository.findApprovedGyms()
@@ -106,20 +96,16 @@ export class GymService implements IGymService {
     return gyms.map(mapGymToResponseDTO)
   }
 
-  // --------------------------------------------------
-  // Approve Gym (Admin)
-  // --------------------------------------------------
-
   async approveGym(id: string): Promise<GymResponseDTO> {
 
   const gym = await this.gymRepository.findById(id)
 
   if (!gym) {
-    throw new AppError("Gym not found", 404)
+    throw new AppError("Gym not found", HttpStatus.NOT_FOUND)
   }
 
   if (gym.status !== GymStatus.PENDING) {
-    throw new AppError("Gym is not pending approval", 400)
+    throw new AppError("Gym is not pending approval", HttpStatus.BAD_REQUEST)
   }
 
   const token = generateToken()
@@ -131,7 +117,7 @@ export class GymService implements IGymService {
   })
 
   if (!updatedGym) {
-    throw new AppError("Gym update failed", 500)
+    throw new AppError("Gym update failed", HttpStatus.INTERNAL_SERVER_ERROR)
   }
 
   await this.invitationEmailService.sendInvitation(updatedGym.email, token)
@@ -139,20 +125,16 @@ export class GymService implements IGymService {
   return mapGymToResponseDTO(updatedGym)
 }
 
-  // --------------------------------------------------
-  // Reject Gym (Admin)
-  // --------------------------------------------------
-
   async rejectGym(id: string, reason: string): Promise<GymResponseDTO> {
 
     const gym = await this.gymRepository.findById(id)
 
     if (!gym) {
-      throw new AppError("Gym not found", 404)
+      throw new AppError("Gym not found", HttpStatus.NOT_FOUND)
     }
 
     if (gym.status !== GymStatus.PENDING) {
-      throw new AppError("Only pending gyms can be rejected", 400)
+      throw new AppError("Only pending gyms can be rejected", HttpStatus.BAD_REQUEST)
     }
 
     const updatedGym = await this.gymRepository.updateGym(id, {
@@ -161,26 +143,22 @@ export class GymService implements IGymService {
     })
 
     if (!updatedGym) {
-      throw new AppError("Gym update failed", 500)
+      throw new AppError("Gym update failed", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
     return mapGymToResponseDTO(updatedGym)
   }
-
-  // --------------------------------------------------
-  // Reapply Gym
-  // --------------------------------------------------
 
   async reapplyGym(id: string): Promise<GymResponseDTO> {
 
     const gym = await this.gymRepository.findById(id)
 
     if (!gym) {
-      throw new AppError("Gym not found", 404)
+      throw new AppError("Gym not found", HttpStatus.NOT_FOUND)
     }
 
     if (gym.status !== GymStatus.REJECTED) {
-      throw new AppError("Only rejected gyms can reapply", 400)
+      throw new AppError("Only rejected gyms can reapply", HttpStatus.BAD_REQUEST)
     }
 
     const updatedGym = await this.gymRepository.updateGym(id, {
@@ -189,40 +167,32 @@ export class GymService implements IGymService {
     })
 
     if (!updatedGym) {
-      throw new AppError("Gym update failed", 500)
+      throw new AppError("Gym update failed", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
     return mapGymToResponseDTO(updatedGym)
   }
 
- // --------------------------------------------------
-  // Validate invitation link
-  // --------------------------------------------------
-  
   async validateInvitation(token: string) {
 
   const gym = await this.gymRepository.findByInvitationToken(token)
 
   if (!gym) {
-    throw new AppError("Invalid invitation link", 400)
+    throw new AppError("Invalid invitation link", HttpStatus.BAD_REQUEST)
   }
 
   if (!gym.invitationTokenExpiresAt) {
-    throw new AppError("Invalid invitation link", 400)
+    throw new AppError("Invalid invitation link", HttpStatus.BAD_REQUEST)
   }
 
   if (gym.invitationTokenExpiresAt < new Date()) {
-    throw new AppError("Invitation link expired", 400)
+    throw new AppError("Invitation link expired", HttpStatus.BAD_REQUEST)
   }
 
   return {
     email: gym.email
   }
 }
-
-  // --------------------------------------------------
-  // Complete Registration as Gym admin
-  // --------------------------------------------------
 
   async completeRegistration(data: CompleteRegistrationDTO): Promise<void> {
 
@@ -231,15 +201,15 @@ export class GymService implements IGymService {
   const gym = await this.gymRepository.findByInvitationToken(token)
 
   if (!gym) {
-    throw new AppError("Invalid invitation link", 400)
+    throw new AppError("Invalid invitation link", HttpStatus.BAD_REQUEST)
   }
 
   if (!gym.invitationTokenExpiresAt) {
-    throw new AppError("Invalid invitation link", 400)
+    throw new AppError("Invalid invitation link", HttpStatus.BAD_REQUEST)
   }
 
   if (gym.invitationTokenExpiresAt < new Date()) {
-    throw new AppError("Invitation link expired", 400)
+    throw new AppError("Invitation link expired", HttpStatus.BAD_REQUEST)
   }
 
   const existingUser = await this.userRepository.findByEmail(gym.email)

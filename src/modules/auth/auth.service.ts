@@ -20,6 +20,7 @@ import { UserResponseDTO } from "../user/dto/user.response.dto"
 import { RegisterDTO } from "./dto/auth.register.dto"
 import { LoginDTO } from "./dto/auth.login.dto"
 import { IOtpEmailService } from "./email/IOtpEmailService"
+import { HttpStatus } from "../../shared/enums/httpStatus.enum"
 
 
 
@@ -47,7 +48,7 @@ export class AuthService implements IAuthService {
     const existingUser = await this.userRepository.findByEmail(data.email)
 
     if (existingUser) {
-      throw new AppError("User already exists", 400)
+      throw new AppError("User already exists", HttpStatus.BAD_REQUEST)
     }
 
     const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS)
@@ -74,17 +75,17 @@ export class AuthService implements IAuthService {
     const user = await this.userRepository.findByEmail(data.email)
 
     if (!user) {
-      throw new AppError("Invalid email or password", 401)
+      throw new AppError("Invalid email or password", HttpStatus.UNAUTHORIZED)
     }
 
     if (user.status !== UserStatus.ACTIVE) {
-      throw new AppError("Please verify your email before login", 403)
+      throw new AppError("Please verify your email before login", HttpStatus.FORBIDDEN)
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password)
 
     if (!isPasswordValid) {
-      throw new AppError("Invalid email or password", 401)
+      throw new AppError("Invalid email or password", HttpStatus.UNAUTHORIZED)
     }
 
     const token = generateToken({
@@ -129,7 +130,7 @@ export class AuthService implements IAuthService {
     const user = await this.userRepository.findByEmail(email)
 
     if (!user) {
-      throw new AppError("User not found", 404)
+      throw new AppError("User not found", HttpStatus.NOT_FOUND)
     }
 
     await this.userRepository.updateUser(user._id.toString(), {
@@ -158,7 +159,7 @@ export class AuthService implements IAuthService {
     const user = await this.userRepository.findByEmail(email)
 
     if (!user) {
-      throw new AppError("User not found", 404)
+      throw new AppError("User not found", HttpStatus.NOT_FOUND)
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS)
@@ -183,15 +184,15 @@ export class AuthService implements IAuthService {
     const otpRecord = await this.otpRepository.findByEmail(email)
 
     if (!otpRecord) {
-      throw new AppError("OTP not found or expired", 400)
+      throw new AppError("OTP not found or expired", HttpStatus.BAD_REQUEST)
     }
 
     if (otpRecord.expiresAt < new Date()) {
-      throw new AppError("OTP expired", 400)
+      throw new AppError("OTP expired", HttpStatus.BAD_REQUEST)
     }
 
     if (otpRecord.otp !== otp) {
-      throw new AppError("Invalid OTP", 400)
+      throw new AppError("Invalid OTP", HttpStatus.BAD_REQUEST)
     }
   }
 
