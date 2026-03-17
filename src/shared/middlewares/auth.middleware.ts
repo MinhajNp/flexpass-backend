@@ -23,7 +23,7 @@ export const authMiddleware = (
 
   try {
 
-    const decoded = jwt.verify(token, env.JWT_SECRET)
+    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET)
 
     req.user = decoded
 

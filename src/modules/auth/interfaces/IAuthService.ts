@@ -28,5 +28,6 @@ export interface IAuthService {
     ): Promise<{ message: string }>
 
     refreshToken(token: string): Promise<{accessToken: string}> 
+    forgotPassword(email: string): Promise<{message:string}>
 
 }
