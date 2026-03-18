@@ -1,13 +1,23 @@
-import { GymRepository } from "./gym.repository"
 import { ApplyGymDTO } from "./dto/apply.gym.dto"
 import { GymResponseDTO } from "./dto/gym.response.dto"
 import { mapGymToResponseDTO } from "./mappers/gym.mapper"
-import { GymStatus } from "../../enums/gymStatus.enum"
-import { AppError } from "../../utils/AppError"
 
-export class GymService {
+import { GymStatus } from "../../shared/enums/gymStatus.enum"
+import { AppError } from "../../shared/utils/AppError"
 
-  private gymRepository = new GymRepository()
+import { IGymService } from "./interfaces/IGymService"
+import { IGymRepository } from "./interfaces/IGymRepository"
+
+import { inject, injectable } from "inversify"
+import { TYPES } from "../../core/container/types"
+
+@injectable()
+export class GymService implements IGymService {
+
+  constructor(
+    @inject(TYPES.IGymRepository)
+    private gymRepository: IGymRepository
+  ) {}
 
   // --------------------------------------------------
   // Gym Apply
@@ -34,17 +44,16 @@ export class GymService {
     return gyms.map(mapGymToResponseDTO)
   }
 
-   // --------------------------------------------------
+  // --------------------------------------------------
   // Get Approved Gyms (Admin)
   // --------------------------------------------------
-  
+
   async getApprovedGyms(): Promise<GymResponseDTO[]> {
 
-  const gyms = await this.gymRepository.findApprovedGyms()
+    const gyms = await this.gymRepository.findApprovedGyms()
 
-  return gyms.map(mapGymToResponseDTO)
-
-}
+    return gyms.map(mapGymToResponseDTO)
+  }
 
   // --------------------------------------------------
   // Approve Gym (Admin)
@@ -66,7 +75,11 @@ export class GymService {
       status: GymStatus.APPROVED
     })
 
-    return mapGymToResponseDTO(updatedGym!)
+    if (!updatedGym) {
+      throw new AppError("Gym update failed", 500)
+    }
+
+    return mapGymToResponseDTO(updatedGym)
   }
 
   // --------------------------------------------------
@@ -81,12 +94,20 @@ export class GymService {
       throw new AppError("Gym not found", 404)
     }
 
+    if (gym.status !== GymStatus.PENDING) {
+      throw new AppError("Only pending gyms can be rejected", 400)
+    }
+
     const updatedGym = await this.gymRepository.updateGym(id, {
       status: GymStatus.REJECTED,
       rejectionReason: reason
     })
 
-    return mapGymToResponseDTO(updatedGym!)
+    if (!updatedGym) {
+      throw new AppError("Gym update failed", 500)
+    }
+
+    return mapGymToResponseDTO(updatedGym)
   }
 
   // --------------------------------------------------
@@ -110,7 +131,11 @@ export class GymService {
       rejectionReason: ""
     })
 
-    return mapGymToResponseDTO(updatedGym!)
+    if (!updatedGym) {
+      throw new AppError("Gym update failed", 500)
+    }
+
+    return mapGymToResponseDTO(updatedGym)
   }
 
 }

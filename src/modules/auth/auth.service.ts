@@ -1,29 +1,48 @@
 import bcrypt from "bcrypt"
-import { UserRepository } from "../user/user.repository"
-import { AppError } from "../../utils/AppError"
-import { Role } from "../../enums/role.enum"
-import { generateToken } from "../../utils/jwt"
-import { generateOTP } from "../../utils/otp"
-import { OtpRepository } from "./otp.repository"
+import { inject, injectable } from "inversify"
+
+import { AppError } from "../../shared/utils/AppError"
+import { generateToken } from "../../shared/utils/jwt"
+import { generateOTP } from "../../shared/utils/otp"
+
+import { UserStatus } from "../../shared/enums/userStatus.enum"
+
+import { OTP_EXPIRY_MINUTES, SALT_ROUNDS } from "../../shared/constants/auth.constants"
+
+import { IUserRepository } from "../user/interfaces/IUserRepository"
+import { IOtpRepository } from "./otp/IOtpRepository"
+import { IAuthService } from "./interfaces/IAuthService"
+
+import { TYPES } from "../../core/container/types"
+
 import { mapUserToResponseDTO } from "../user/mappers/user.mapper"
 import { UserResponseDTO } from "../user/dto/user.response.dto"
-import { OTP_EXPIRY_MINUTES, SALT_ROUNDS } from "../../constants/auth.constants"
-import { UserStatus } from "../../enums/userStatus.enum"
+import { RegisterDTO } from "./dto/auth.register.dto"
+import { LoginDTO } from "./dto/auth.login.dto"
+import { IOtpEmailService } from "./email/IOtpEmailService"
 
-export class AuthService {
 
-  private userRepository = new UserRepository()
-  private otpRepository = new OtpRepository()
+
+@injectable()
+export class AuthService implements IAuthService {
+
+  constructor(
+    @inject(TYPES.IUserRepository)
+    private userRepository: IUserRepository,
+
+    @inject(TYPES.IOtpRepository)
+    private otpRepository: IOtpRepository,
+
+    @inject(TYPES.IOtpEmailService)
+    private otpEmailService: IOtpEmailService
+
+  ) {}
 
   // --------------------------------------------------
   // Register
   // --------------------------------------------------
-  async register(data: {
-    name: string
-    email: string
-    password: string
-    role: Role
-  }): Promise<{ message: string }> {
+
+  async register(data: RegisterDTO): Promise<{ message: string }> {
 
     const existingUser = await this.userRepository.findByEmail(data.email)
 
@@ -49,10 +68,8 @@ export class AuthService {
   // --------------------------------------------------
   // Login
   // --------------------------------------------------
-  async login(data: {
-    email: string
-    password: string
-  }): Promise<{ user: UserResponseDTO; token: string }> {
+
+  async login(data: LoginDTO): Promise<{ user: UserResponseDTO; token: string }> {
 
     const user = await this.userRepository.findByEmail(data.email)
 
@@ -84,21 +101,28 @@ export class AuthService {
   // --------------------------------------------------
   // Send OTP
   // --------------------------------------------------
+
   async sendOtp(email: string): Promise<void> {
 
     const otp = generateOTP()
-    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000)
+
+    const expiresAt = new Date(
+      Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000
+    )
 
     await this.otpRepository.saveOtp(email, otp, expiresAt)
 
-    // TODO: replace with email service later
-    console.log("OTP:", otp)
+    await this.otpEmailService.sendOtp(email, otp)
   }
 
   // --------------------------------------------------
-  // Verify OTP (email verification)
+  // Verify OTP
   // --------------------------------------------------
-  async verifyOtp(email: string, otp: string): Promise<boolean> {
+
+  async verifyOtp(
+    email: string,
+    otp: string
+  ): Promise<{ message: string }> {
 
     await this.validateOtp(email, otp)
 
@@ -108,22 +132,26 @@ export class AuthService {
       throw new AppError("User not found", 404)
     }
 
-    user.status = UserStatus.ACTIVE
-    await user.save()
+    await this.userRepository.updateUser(user._id.toString(), {
+      status: UserStatus.ACTIVE
+    })
 
     await this.otpRepository.deleteOtp(email)
 
-    return true
+    return {
+      message: "Email verified successfully"
+    }
   }
 
   // --------------------------------------------------
   // Reset Password
   // --------------------------------------------------
+
   async resetPassword(
     email: string,
     otp: string,
     newPassword: string
-  ): Promise<boolean> {
+  ): Promise<{ message: string }> {
 
     await this.validateOtp(email, otp)
 
@@ -135,18 +163,22 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS)
 
-    user.password = hashedPassword
-    await user.save()
+    await this.userRepository.updateUser(user._id.toString(), {
+      password: hashedPassword
+    })
 
     await this.otpRepository.deleteOtp(email)
 
-    return true
+    return {
+      message: "Password reset successfully"
+    }
   }
 
   // --------------------------------------------------
   // OTP Validation Helper
   // --------------------------------------------------
-  private async validateOtp(email: string, otp: string) {
+
+  private async validateOtp(email: string, otp: string): Promise<void> {
 
     const otpRecord = await this.otpRepository.findByEmail(email)
 
@@ -154,11 +186,13 @@ export class AuthService {
       throw new AppError("OTP not found or expired", 400)
     }
 
+    if (otpRecord.expiresAt < new Date()) {
+      throw new AppError("OTP expired", 400)
+    }
+
     if (otpRecord.otp !== otp) {
       throw new AppError("Invalid OTP", 400)
     }
-
-    return otpRecord
   }
 
 }

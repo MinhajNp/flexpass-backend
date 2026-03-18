@@ -1,11 +1,18 @@
 import { Request, Response } from "express"
-import { GymService } from "./gym.service"
-import { asyncHandler } from "../../utils/asyncHandler"
-import { sendResponse } from "../../utils/response"
+import { asyncHandler } from "../../shared/utils/asyncHandler"
+import { sendResponse } from "../../shared/utils/response"
 
+import { inject, injectable } from "inversify"
+import { IGymService } from "./interfaces/IGymService"
+import { TYPES } from "../../core/container/types"
+
+@injectable()
 export class GymController {
 
-  private gymService = new GymService()
+  constructor(
+    @inject(TYPES.IGymService)
+    private gymService: IGymService
+  ) {}
 
   // --------------------------------------------------
   // Apply Gym
@@ -41,7 +48,7 @@ export class GymController {
 
     sendResponse(res, 200, "Gyms fetched successfully", result)
 
-   })
+  })
 
   // --------------------------------------------------
   // Approve Gym
@@ -51,7 +58,7 @@ export class GymController {
 
     const id = req.params.id as string
 
-  const result = await this.gymService.approveGym(id)
+    const result = await this.gymService.approveGym(id)
 
     sendResponse(res, 200, "Gym approved successfully", result)
 
@@ -64,9 +71,9 @@ export class GymController {
   rejectGym = asyncHandler(async (req: Request, res: Response) => {
 
     const id = req.params.id as string
-  const { reason } = req.body
+    const { reason } = req.body
 
-  const result = await this.gymService.rejectGym(id, reason)
+    const result = await this.gymService.rejectGym(id, reason)
 
     sendResponse(res, 200, "Gym rejected successfully", result)
 
@@ -80,7 +87,7 @@ export class GymController {
 
     const id = req.params.id as string
 
-  const result = await this.gymService.reapplyGym(id)
+    const result = await this.gymService.reapplyGym(id)
 
     sendResponse(res, 200, "Gym reapplied successfully", result)
 

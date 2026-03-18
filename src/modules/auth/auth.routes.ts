@@ -1,12 +1,18 @@
 import { Router } from "express"
+
+import container from "../../core/container/container"
+import { TYPES } from "../../core/container/types"
+
 import { AuthController } from "./auth.controller"
 
 const router = Router()
 
-router.post("/register", AuthController.register)
-router.post("/login", AuthController.login)
-router.post("/send-otp", AuthController.sendOtp)
-router.post("/verify-otp", AuthController.verifyOtp)
-router.post("/reset-password", AuthController.resetPassword)
+const authController = container.get<AuthController>(TYPES.AuthController)
+
+router.post("/register", authController.register)
+router.post("/login", authController.login)
+router.post("/send-otp", authController.sendOtp)
+router.post("/verify-otp", authController.verifyOtp)
+router.post("/reset-password", authController.resetPassword)
 
 export default router

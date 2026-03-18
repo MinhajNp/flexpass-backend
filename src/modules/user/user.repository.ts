@@ -1,18 +1,25 @@
-import { User, IUser } from "./user.entity"
+import { injectable } from "inversify"
 
-export class UserRepository {
+import { User, IUser } from "./user.entity"
+import { IUserRepository } from "./interfaces/IUserRepository"
+
+@injectable()
+export class UserRepository implements IUserRepository {
 
   async findByEmail(email: string): Promise<IUser | null> {
-    return User.findOne({ email })
+    return User.findOne({ email }).lean()
   }
 
   async createUser(data: Partial<IUser>): Promise<IUser> {
-    const user = new User(data)
-    return user.save()
+    return User.create(data)
   }
 
-  async findAllUsers() {
-    return User.find()
+  async findAllUsers(): Promise<IUser[]> {
+    return User.find().lean()
+  }
+
+  async updateUser(id: string, data: Partial<IUser>): Promise<IUser | null> {
+    return User.findByIdAndUpdate(id, data, { new: true }).lean()
   }
 
 }
