@@ -16,8 +16,14 @@ export class GymRepository {
     return Gym.find({ status: GymStatus.PENDING })
   }
 
+   async findApprovedGyms(): Promise<IGym[]> {
+    return Gym.find({ status: GymStatus.APPROVED })
+  }
+
   async updateGym(id: string, data: Partial<IGym>): Promise<IGym | null> {
     return Gym.findByIdAndUpdate(id, data, { new: true })
   }
+
+ 
 
 }

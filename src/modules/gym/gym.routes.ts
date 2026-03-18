@@ -5,30 +5,44 @@ import { authorizeRoles } from "../../middlewares/role.middleware"
 import { Role } from "../../enums/role.enum"
 
 const router = Router()
-
 const gymController = new GymController()
 
+// --------------------------------------------------
+// Gym Application Routes
+// --------------------------------------------------
+
+router.post("/apply", gymController.applyGym)
+
+router.patch("/:id/reapply", gymController.reapplyGym)
 
 
-router.post("/apply",gymController.applyGym)
-router.patch("/:id/reapply",gymController.reapplyGym)
+// --------------------------------------------------
+// Admin Gym Management Routes
+// --------------------------------------------------
 
 router.get(
-  "/admin/gyms",
+  "/admin/applications",
   authMiddleware,
   authorizeRoles(Role.PLATFORM_ADMIN),
   gymController.getPendingGyms
 )
 
+router.get(
+  "/admin",
+  authMiddleware,
+  authorizeRoles(Role.PLATFORM_ADMIN),
+  gymController.getApprovedGyms
+)
+
 router.patch(
-  "/admin/gyms/:id/approve",
+  "/admin/:id/approve",
   authMiddleware,
   authorizeRoles(Role.PLATFORM_ADMIN),
   gymController.approveGym
 )
 
 router.patch(
-  "/admin/gyms/:id/reject",
+  "/admin/:id/reject",
   authMiddleware,
   authorizeRoles(Role.PLATFORM_ADMIN),
   gymController.rejectGym
