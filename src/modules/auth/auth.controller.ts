@@ -88,6 +88,20 @@ export class AuthController {
 
   })
 
+  // --------------------------------------------------
+  // Forget Password
+  // --------------------------------------------------
+
+  forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+
+  const { email } = req.body
+
+  const result = await this.authService.forgotPassword(email)
+
+  sendResponse(res,HttpStatus.OK, result.message)
+
+})
+
 
   // --------------------------------------------------
   // Reset Password
