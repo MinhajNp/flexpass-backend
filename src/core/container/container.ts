@@ -22,6 +22,8 @@ import { GymController } from "../../modules/gym/gym.controller"
 import { AdminController } from "../../modules/admin/admin.controller"
 import { IOtpEmailService } from "../../modules/auth/email/IOtpEmailService"
 import { OtpEmailService } from "../../modules/auth/email/otpEmail.service"
+import { IGymInvitationEmailService } from "../../modules/gym/email/IGymInvitationEmailService"
+import { GymInvitationEmailService } from "../../modules/gym/email/gymInvitationEmail.service"
 
 const container = new Container()
 
@@ -38,6 +40,8 @@ container.bind<IAuthService>(TYPES.IAuthService).to(AuthService)
 container.bind<IGymService>(TYPES.IGymService).to(GymService)
 container.bind<IAdminService>(TYPES.IAdminService).to(AdminService)
 container.bind<IOtpEmailService>(TYPES.IOtpEmailService).to(OtpEmailService)
+container.bind<IGymInvitationEmailService>(TYPES.IGymInvitationEmailService)
+.to(GymInvitationEmailService)
 
 
 // controllers

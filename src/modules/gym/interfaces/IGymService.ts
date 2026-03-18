@@ -1,4 +1,5 @@
 import { ApplyGymDTO } from "../dto/apply.gym.dto";
+import { CompleteRegistrationDTO } from "../dto/complete-registration.dto";
 import { GymResponseDTO } from "../dto/gym.response.dto";
 
 export interface IGymService{
@@ -8,4 +9,7 @@ export interface IGymService{
     approveGym(id: string): Promise<GymResponseDTO>
     rejectGym(id: string, reason: string): Promise<GymResponseDTO>
     reapplyGym(id: string): Promise<GymResponseDTO>
+    validateInvitation(token: string): Promise<{ email: string }>
+    completeRegistration(data: CompleteRegistrationDTO): Promise<void>
+
 }

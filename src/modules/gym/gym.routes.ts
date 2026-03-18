@@ -51,4 +51,7 @@ router.patch(
   gymController.rejectGym
 )
 
+router.get("/invitation/:token", gymController.validateInvitation)
+router.post("/complete-registration", gymController.completeRegistration)
+
 export default router
