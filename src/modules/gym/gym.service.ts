@@ -1,5 +1,5 @@
 import { GymRepository } from "./gym.repository"
-import { ApplyGymDTO } from "./dto/applyGym.dto"
+import { ApplyGymDTO } from "./dto/apply.gym.dto"
 import { GymResponseDTO } from "./dto/gym.response.dto"
 import { mapGymToResponseDTO } from "./mappers/gym.mapper"
 import { GymStatus } from "../../enums/gymStatus.enum"
