@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose"
-import { Role } from "../../shared/enums/role.enum"
-import { UserStatus } from "../../shared/enums/userStatus.enum"
+import { Role } from "../../../shared/enums/role.enum"
+import { UserStatus } from "../../../shared/enums/userStatus.enum"
 
 export interface IUser extends Document {
   name: string

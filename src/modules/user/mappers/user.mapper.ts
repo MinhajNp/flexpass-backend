@@ -1,4 +1,4 @@
-import { IUser } from "../user.entity"
+import { IUser } from "../entities/user.entity"
 import { UserResponseDTO } from "../dto/user.response.dto"
 
 export const mapUserToResponseDTO = (user: IUser): UserResponseDTO => {
@@ -7,7 +7,8 @@ export const mapUserToResponseDTO = (user: IUser): UserResponseDTO => {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
-    role: user.role
+    role: user.role,
+    status:user.status
   }
 
 }
