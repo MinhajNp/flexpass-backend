@@ -25,6 +25,7 @@ export interface IAuthService {
   ): Promise<{ message: string }>
 
   forgotPassword(email: string): Promise<{ message: string }>
+  resendOtp(email: string): Promise<void>
 
   resetPassword(
     email: string,

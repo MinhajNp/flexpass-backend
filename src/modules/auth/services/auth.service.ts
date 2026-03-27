@@ -32,7 +32,7 @@ export class AuthService implements IAuthService {
 
     @inject(TYPES.ITokenService)
     private tokenService: ITokenService
-  ) {}
+  ) { }
 
   // --------------------------------------------------
   // Register
@@ -141,6 +141,21 @@ export class AuthService implements IAuthService {
       message: "OTP sent successfully"
     }
   }
+
+  // --------------------------------------------------
+  // Resend OTP
+  // --------------------------------------------------
+
+  async resendOtp(email: string): Promise<void> {
+  const user = await this.userRepository.findByEmail(email);
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  // call OtpService
+  await this.otpService.sendOtp(email);
+}
 
   // --------------------------------------------------
   // Reset Password

@@ -44,17 +44,22 @@ export class AuthController {
   // Login
   // --------------------------------------------------
   login = asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const validatedData = loginSchema.parse(req.body)
 
-    const validatedData = loginSchema.parse(req.body)
+      const result = await this.authService.login(validatedData)
 
-    const result = await this.authService.login(validatedData)
+      const { user, accessToken, refreshToken } = result
 
-    const { user, accessToken, refreshToken } = result
+      setRefreshTokenCookie(res, refreshToken)
 
-    setRefreshTokenCookie(res, refreshToken)
-
-    sendResponse(res, 200, "Login successful", { user, accessToken })
-
+      sendResponse(res, 200, "Login successful", { user, accessToken })
+    } catch (error: any) {
+      if (error.statusCode === 401 || error.message?.includes("Invalid email or password") || error.message?.includes("Invalid credentials")) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      throw error;
+    }
   })
 
 
@@ -87,6 +92,22 @@ export class AuthController {
     sendResponse(res, HttpStatus.OK, result.message)
 
   })
+
+
+  // --------------------------------------------------
+  // Resend OTP
+  // --------------------------------------------------
+   resendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return sendResponse(res, 400, "Email is required");
+  }
+
+  await this.authService.resendOtp(email);
+
+  return sendResponse(res, 200, "OTP resent successfully");
+});
 
 
   // --------------------------------------------------
