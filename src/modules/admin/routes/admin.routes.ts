@@ -15,24 +15,24 @@ const router = Router()
 const adminController = container.get<AdminController>(TYPES.AdminController)
 
 router.get(
+  "/dashboard/stats",
+  authMiddleware,
+  authorizeRoles(Role.PLATFORM_ADMIN),
+  adminController.getDashboardStats
+)
+
+router.get(
   "/users",
   authMiddleware,
   authorizeRoles(Role.PLATFORM_ADMIN),
-  adminController.getUsers
+  adminController.getAllUsers
 )
 
 router.patch(
-  "/users/:id/block",
+  "/users/:id/status",
   authMiddleware,
   authorizeRoles(Role.PLATFORM_ADMIN),
-  adminController.blockUser
-)
-
-router.patch(
-  "/users/:id/unblock",
-  authMiddleware,
-  authorizeRoles(Role.PLATFORM_ADMIN),
-  adminController.unblockUser
+  adminController.toggleUserStatus
 )
 
 export default router
