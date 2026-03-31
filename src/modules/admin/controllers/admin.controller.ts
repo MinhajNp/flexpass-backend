@@ -27,11 +27,11 @@ export class AdminController {
   // ---------------------------
   getDashboardStats = asyncHandler(async (req: Request, res: Response) => {
     
-    // Total Users (where role is 'user')
-    const totalUsers = await User.countDocuments({ role: 'user' });
+    // Total Users (where role is 'USER')
+    const totalUsers = await User.countDocuments({ role: 'USER' });
 
     // Active Gyms (where status is 'ACTIVE')
-    const activeGyms = await Gym.countDocuments({ status: 'ACTIVE' });
+    const activeGyms = await Gym.countDocuments({ status: 'APPROVED' });
 
     // Today's Check-ins
     const startOfDay = new Date();
