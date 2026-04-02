@@ -1,10 +1,11 @@
 import { Router } from "express"
-import { GymController } from "./gym.controller"
-import { authMiddleware } from "../../shared/middlewares/auth.middleware"
-import { authorizeRoles } from "../../shared/middlewares/role.middleware"
-import { Role } from "../../shared/enums/role.enum"
-import { TYPES } from "../../core/container/types"
-import container from "../../core/container/container"
+import { GymController } from "../controllers/gym.controller";
+import container from "../../../core/container/container";
+import { TYPES } from "../../../core/container/types";
+import { authMiddleware } from "../../../shared/middlewares/auth.middleware";
+import { authorizeRoles } from "../../../shared/middlewares/role.middleware";
+import { Role } from "../../../shared/enums/role.enum";
+
 
 
 const router = Router()

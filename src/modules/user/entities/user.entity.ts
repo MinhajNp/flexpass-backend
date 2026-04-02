@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose"
-import { Role } from "../../shared/enums/role.enum"
-import { UserStatus } from "../../shared/enums/userStatus.enum"
+import { Role } from "../../../shared/enums/role.enum"
+import { UserStatus } from "../../../shared/enums/userStatus.enum"
 
 export interface IUser extends Document {
   name: string
@@ -9,6 +9,11 @@ export interface IUser extends Document {
   role: Role
   status: UserStatus
   isVerified: boolean
+  active_membership?: {
+    plan: string;
+    expiryDate: Date;
+  }
+  check_in_count: number
 }
 
 const userSchema = new Schema<IUser>(
@@ -44,6 +49,16 @@ const userSchema = new Schema<IUser>(
     isVerified: {
       type: Boolean,
       default: false
+    },
+
+    active_membership: {
+      plan: { type: String },
+      expiryDate: { type: Date }
+    },
+
+    check_in_count: {
+      type: Number,
+      default: 0
     }
   },
   {

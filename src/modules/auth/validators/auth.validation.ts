@@ -1,11 +1,11 @@
 import { z } from "zod"
-import { Role } from "../../shared/enums/role.enum"
+import { Role } from "../../../shared/enums/role.enum"
 
 export const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(Role)
+  role: z.enum(Role).default(Role.USER),
 })
 
 export const loginSchema = z.object({

@@ -1,21 +1,21 @@
 import { Request, Response } from "express"
 import { inject, injectable } from "inversify"
 
-import { asyncHandler } from "../../shared/utils/asyncHandler"
-import { sendResponse } from "../../shared/utils/response"
-import { clearRefreshTokenCookie, setRefreshTokenCookie } from "../../shared/utils/cookie.util"
+import { asyncHandler } from "../../../shared/utils/asyncHandler"
+import { sendResponse } from "../../../shared/utils/response"
+import { clearRefreshTokenCookie, setRefreshTokenCookie } from "../../../shared/utils/cookie.util"
 
 import {
   registerSchema,
   loginSchema,
-  sendOtpSchema,
   verifyOtpSchema,
-  resetPasswordSchema
-} from "./auth.validation"
+  resetPasswordSchema,
+  forgotPasswordSchema
+} from "../validators/auth.validation"
 
-import { IAuthService } from "./interfaces/IAuthService"
-import { TYPES } from "../../core/container/types"
-import { HttpStatus } from "../../shared/enums/httpStatus.enum"
+import { IAuthService } from "../interfaces/IAuthService"
+import { TYPES } from "../../../core/container/types"
+import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
 
 
 @injectable()
@@ -44,31 +44,22 @@ export class AuthController {
   // Login
   // --------------------------------------------------
   login = asyncHandler(async (req: Request, res: Response) => {
+    try {
+      const validatedData = loginSchema.parse(req.body)
 
-    const validatedData = loginSchema.parse(req.body)
+      const result = await this.authService.login(validatedData)
 
-    const result = await this.authService.login(validatedData)
+      const { user, accessToken, refreshToken } = result
 
-    const { user, accessToken, refreshToken } = result
+      setRefreshTokenCookie(res, refreshToken)
 
-    setRefreshTokenCookie(res, refreshToken)
-
-    sendResponse(res, 200, "Login successful", {user,accessToken})
-
-  })
-
-
-  // --------------------------------------------------
-  // Send OTP
-  // --------------------------------------------------
-  sendOtp = asyncHandler(async (req: Request, res: Response) => {
-
-    const validatedData = sendOtpSchema.parse(req.body)
-
-    await this.authService.sendOtp(validatedData.email)
-
-    sendResponse(res, 200, "OTP sent successfully")
-
+      sendResponse(res, 200, "Login successful", { user, accessToken })
+    } catch (error: any) {
+      if (error.statusCode === 401 || error.message?.includes("Invalid email or password") || error.message?.includes("Invalid credentials")) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      throw error;
+    }
   })
 
 
@@ -88,19 +79,35 @@ export class AuthController {
 
   })
 
+
   // --------------------------------------------------
   // Forget Password
   // --------------------------------------------------
-
   forgotPassword = asyncHandler(async (req: Request, res: Response) => {
 
-  const { email } = req.body
+    const { email } = forgotPasswordSchema.parse(req.body)
 
-  const result = await this.authService.forgotPassword(email)
+    const result = await this.authService.forgotPassword(email)
 
-  sendResponse(res,HttpStatus.OK, result.message)
+    sendResponse(res, HttpStatus.OK, result.message)
 
-})
+  })
+
+
+  // --------------------------------------------------
+  // Resend OTP
+  // --------------------------------------------------
+   resendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return sendResponse(res, 400, "Email is required");
+  }
+
+  await this.authService.resendOtp(email);
+
+  return sendResponse(res, 200, "OTP resent successfully");
+});
 
 
   // --------------------------------------------------
@@ -126,23 +133,29 @@ export class AuthController {
   // --------------------------------------------------
   refreshToken = asyncHandler(async (req: Request, res: Response) => {
 
-  const refreshToken = req.cookies.refreshToken
+    const refreshToken = req.cookies.refreshToken
 
-  const accessToken = await this.authService.refreshToken(refreshToken)
+    const result = await this.authService.refreshToken(refreshToken)
 
-  sendResponse(res, 
-    HttpStatus.OK,"Token refreshed successfully",accessToken)
+    sendResponse(
+      res,
+      HttpStatus.OK,
+      "Token refreshed successfully",
+      result
+    )
 
-})
+  })
 
-// --------------------------------------------------
+
+  // --------------------------------------------------
   // Logout
   // --------------------------------------------------
-logout = asyncHandler(async (req: Request, res: Response) => {
+  logout = asyncHandler(async (req: Request, res: Response) => {
 
-  clearRefreshTokenCookie(res)
+    clearRefreshTokenCookie(res)
 
-  sendResponse(res, HttpStatus.OK, "Logged out successfully")
-})
+    sendResponse(res, HttpStatus.OK, "Logged out successfully")
+
+  })
 
 }

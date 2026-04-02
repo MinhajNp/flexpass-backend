@@ -1,4 +1,4 @@
-import { IGym } from "../gym.entity"
+import { IGym } from "../entities/gym.entity"
 import { GymResponseDTO } from "../dto/gym.response.dto"
 
 export const mapGymToResponseDTO = (gym: IGym): GymResponseDTO => {

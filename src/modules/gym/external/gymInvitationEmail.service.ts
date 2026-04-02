@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer"
 import { injectable } from "inversify"
-import { IGymInvitationEmailService } from "./IGymInvitationEmailService"
+import { IGymInvitationEmailService } from "../interfaces/IGymInvitationEmailService"
 import { env } from "../../../core/config/env"
 
 @injectable()
@@ -17,7 +17,7 @@ export class GymInvitationEmailService implements IGymInvitationEmailService {
   async sendInvitation(email: string, token: string): Promise<void> {
 
     const link =
-      `${env.FRONTEND_URL}/gym-register?token=${token}`
+      `${env.CLIENT_URL}/gym-register?token=${token}`
 
     await this.transporter.sendMail({
       to: email,

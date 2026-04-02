@@ -1,9 +1,9 @@
 import { injectable } from "inversify"
 
-import { User, IUser } from "./user.entity"
-import { IUserRepository } from "./interfaces/IUserRepository"
-import { Role } from "../../shared/enums/role.enum"
-import { UserStatus } from "../../shared/enums/userStatus.enum"
+import { User, IUser } from "../entities/user.entity"
+import { IUserRepository } from "../interfaces/IUserRepository"
+import { Role } from "../../../shared/enums/role.enum"
+import { UserStatus } from "../../../shared/enums/userStatus.enum"
 
 @injectable()
 export class UserRepository implements IUserRepository {
