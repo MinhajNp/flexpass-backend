@@ -19,6 +19,12 @@ export interface IAuthService {
     refreshToken: string
   }>
 
+  googleLogin(idToken: string): Promise<{
+    user: UserResponseDTO
+    accessToken: string
+    refreshToken: string
+  }>
+
   verifyOtp(
     email: string,
     otp: string

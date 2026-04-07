@@ -1,5 +1,6 @@
 export enum GymStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
-  REJECTED = "REJECTED"
+  REJECTED = "REJECTED",
+  SUSPENDED = "SUSPENDED"
 }

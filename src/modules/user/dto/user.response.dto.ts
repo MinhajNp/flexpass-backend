@@ -4,9 +4,6 @@ export interface UserResponseDTO {
   email: string
   role: string
   status:string
-  active_membership?: {
-    plan: string;
-    expiryDate: Date;
-  };
+  active_membership?: any;
   check_in_count: number;
 }

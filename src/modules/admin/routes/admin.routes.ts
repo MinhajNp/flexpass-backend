@@ -15,6 +15,27 @@ const router = Router()
 const adminController = container.get<AdminController>(TYPES.AdminController)
 
 router.get(
+  "/gyms/stats",
+  authMiddleware,
+  authorizeRoles(Role.PLATFORM_ADMIN),
+  adminController.getGymManagementStats
+)
+
+router.get(
+  "/gyms",
+  authMiddleware,
+  authorizeRoles(Role.PLATFORM_ADMIN),
+  adminController.getPartnerGyms
+)
+
+router.patch(
+  "/gyms/:id/status",
+  authMiddleware,
+  authorizeRoles(Role.PLATFORM_ADMIN),
+  adminController.updateGymStatus
+)
+
+router.get(
   "/dashboard/stats",
   authMiddleware,
   authorizeRoles(Role.PLATFORM_ADMIN),

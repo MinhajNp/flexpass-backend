@@ -13,6 +13,7 @@ import { Role } from "../../../shared/enums/role.enum"
 import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
 
 import { AppError } from "../../../shared/utils/AppError"
+import { UserMessages } from "../../../shared/constants/messages/user.messages"
 
 @injectable()
 export class UserService implements IUserService {
@@ -25,11 +26,14 @@ export class UserService implements IUserService {
   // -----------------------------------------
   // Get all users
   // -----------------------------------------
-  async getUsers(): Promise<UserResponseDTO[]> {
+  async getUsers(page?: number, limit?: number): Promise<{ users: UserResponseDTO[]; totalCount: number }> {
 
-    const users = await this.userRepository.findAllUsers()
+    const { users, totalCount } = await this.userRepository.findAllUsers(page, limit)
 
-    return users.map(mapUserToResponseDTO)
+    return {
+      users: users.map(mapUserToResponseDTO),
+      totalCount
+    }
   }
 
   // -----------------------------------------
@@ -39,11 +43,11 @@ export class UserService implements IUserService {
 
     const updatedUser = await this.userRepository.updateUser(
       userId,
-      { status: UserStatus.SUSPENDED }
+      { status: UserStatus.BLOCKED }
     )
 
     if (!updatedUser) {
-      throw new AppError("User not found", HttpStatus.NOT_FOUND)
+      throw new AppError(UserMessages.USER_NOT_FOUND, HttpStatus.NOT_FOUND)
     }
 
     return mapUserToResponseDTO(updatedUser)
@@ -60,7 +64,7 @@ export class UserService implements IUserService {
     )
 
     if (!updatedUser) {
-      throw new AppError("User not found", HttpStatus.NOT_FOUND)
+      throw new AppError(UserMessages.USER_NOT_FOUND, HttpStatus.NOT_FOUND)
     }
 
     return mapUserToResponseDTO(updatedUser)

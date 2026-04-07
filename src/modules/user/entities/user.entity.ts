@@ -5,14 +5,13 @@ import { UserStatus } from "../../../shared/enums/userStatus.enum"
 export interface IUser extends Document {
   name: string
   email: string
-  password: string
+  password?: string
+  googleId?: string
+  picture?: string
   role: Role
   status: UserStatus
   isVerified: boolean
-  active_membership?: {
-    plan: string;
-    expiryDate: Date;
-  }
+  active_membership?: any
   check_in_count: number
 }
 
@@ -31,7 +30,17 @@ const userSchema = new Schema<IUser>(
 
     password: {
       type: String,
-      required: true
+      required: false
+    },
+
+    googleId: {
+      type: String,
+      required: false
+    },
+
+    picture: {
+      type: String,
+      required: false
     },
 
     role: {
@@ -52,8 +61,8 @@ const userSchema = new Schema<IUser>(
     },
 
     active_membership: {
-      plan: { type: String },
-      expiryDate: { type: Date }
+      type: Schema.Types.Mixed,
+      default: "no_plan"
     },
 
     check_in_count: {

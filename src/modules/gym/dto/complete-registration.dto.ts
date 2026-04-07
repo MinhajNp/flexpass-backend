@@ -1,4 +1,3 @@
-export interface CompleteRegistrationDTO {
-  token: string
-  password: string
-}
+import { CompleteRegistrationDTO } from "../validators/gym.vaidation"
+
+export { CompleteRegistrationDTO }

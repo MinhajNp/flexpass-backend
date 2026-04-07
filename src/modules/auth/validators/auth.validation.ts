@@ -31,3 +31,7 @@ export const resetPasswordSchema = z.object({
   otp: z.string().length(6),
   newPassword: z.string().min(6)
 })
+
+export const googleLoginSchema = z.object({
+  idToken: z.string().min(1, "Google token is required")
+})

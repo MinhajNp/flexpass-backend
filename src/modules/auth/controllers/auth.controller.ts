@@ -10,12 +10,14 @@ import {
   loginSchema,
   verifyOtpSchema,
   resetPasswordSchema,
-  forgotPasswordSchema
+  forgotPasswordSchema,
+  googleLoginSchema
 } from "../validators/auth.validation"
 
 import { IAuthService } from "../interfaces/IAuthService"
 import { TYPES } from "../../../core/container/types"
 import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
+import { AuthMessages } from "../../../shared/constants/messages/auth.messages"
 
 
 @injectable()
@@ -35,7 +37,7 @@ export class AuthController {
 
     const result = await this.authService.register(validatedData)
 
-    sendResponse(res, 201, "User registered successfully", result)
+    sendResponse(res, HttpStatus.CREATED, AuthMessages.USER_REGISTERED, result)
 
   })
 
@@ -53,13 +55,31 @@ export class AuthController {
 
       setRefreshTokenCookie(res, refreshToken)
 
-      sendResponse(res, 200, "Login successful", { user, accessToken })
+      sendResponse(res, HttpStatus.OK, AuthMessages.LOGIN_SUCCESS, { user, accessToken })
     } catch (error: any) {
-      if (error.statusCode === 401 || error.message?.includes("Invalid email or password") || error.message?.includes("Invalid credentials")) {
-        return res.status(401).json({ message: 'Invalid credentials' });
+      if (error.statusCode === HttpStatus.UNAUTHORIZED || error.message?.includes("Invalid email or password") || error.message?.includes("Invalid credentials")) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({ message: AuthMessages.INVALID_CREDENTIALS });
       }
       throw error;
     }
+  })
+
+
+  // --------------------------------------------------
+  // Google Login
+  // --------------------------------------------------
+  googleLogin = asyncHandler(async (req: Request, res: Response) => {
+
+    const { idToken } = googleLoginSchema.parse(req.body)
+
+    const result = await this.authService.googleLogin(idToken)
+
+    const { user, accessToken, refreshToken } = result
+
+    setRefreshTokenCookie(res, refreshToken)
+
+    sendResponse(res, HttpStatus.OK, AuthMessages.GOOGLE_LOGIN_SUCCESS, { user, accessToken })
+
   })
 
 
@@ -75,7 +95,7 @@ export class AuthController {
       validatedData.otp
     )
 
-    sendResponse(res, 200, "OTP verified successfully")
+    sendResponse(res, HttpStatus.OK, AuthMessages.OTP_VERIFIED)
 
   })
 
@@ -101,12 +121,12 @@ export class AuthController {
   const { email } = req.body;
 
   if (!email) {
-    return sendResponse(res, 400, "Email is required");
+    return sendResponse(res, HttpStatus.BAD_REQUEST, AuthMessages.EMAIL_REQUIRED);
   }
 
   await this.authService.resendOtp(email);
 
-  return sendResponse(res, 200, "OTP resent successfully");
+  return sendResponse(res, HttpStatus.OK, AuthMessages.OTP_RESENT);
 });
 
 
@@ -123,7 +143,7 @@ export class AuthController {
       validatedData.newPassword
     )
 
-    sendResponse(res, HttpStatus.OK, "Password reset successful")
+    sendResponse(res, HttpStatus.OK, AuthMessages.PASSWORD_RESET_SUCCESS)
 
   })
 
@@ -140,7 +160,7 @@ export class AuthController {
     sendResponse(
       res,
       HttpStatus.OK,
-      "Token refreshed successfully",
+      AuthMessages.TOKEN_REFRESHED,
       result
     )
 
@@ -154,7 +174,7 @@ export class AuthController {
 
     clearRefreshTokenCookie(res)
 
-    sendResponse(res, HttpStatus.OK, "Logged out successfully")
+    sendResponse(res, HttpStatus.OK, AuthMessages.LOGOUT_SUCCESS)
 
   })
 

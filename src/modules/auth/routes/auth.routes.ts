@@ -11,6 +11,7 @@ const authController = container.get<AuthController>(TYPES.AuthController)
 
 router.post("/register", authController.register)
 router.post("/login", authController.login)
+router.post("/google", authController.googleLogin)
 router.post("/verify-otp", authController.verifyOtp)
 router.post("/forgot-password", authController.forgotPassword)
 router.post("/resend-otp", authController.resendOtp)

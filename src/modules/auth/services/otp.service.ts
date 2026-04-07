@@ -12,6 +12,7 @@ import { AppError } from "../../../shared/utils/AppError"
 import { OTP_EXPIRY_MINUTES, SALT_ROUNDS } from "../../../shared/constants/auth.constants"
 import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
 import { IOtpService } from "../interfaces/IOtpService"
+import { AuthMessages } from "../../../shared/constants/messages/auth.messages"
 
 @injectable()
 export class OtpService implements IOtpService {
@@ -53,18 +54,18 @@ export class OtpService implements IOtpService {
     const otpRecord = await this.otpRepository.findByEmail(email)
 
     if (!otpRecord) {
-      throw new AppError("OTP not found or expired", HttpStatus.BAD_REQUEST)
+      throw new AppError(AuthMessages.OTP_NOT_FOUND, HttpStatus.BAD_REQUEST)
     }
 
     if (otpRecord.expiresAt < new Date()) {
       await this.otpRepository.deleteOtp(email)
-      throw new AppError("OTP expired", HttpStatus.BAD_REQUEST)
+      throw new AppError(AuthMessages.OTP_EXPIRED, HttpStatus.BAD_REQUEST)
     }
 
     const isValid = await bcrypt.compare(otp, otpRecord.otp)
 
     if (!isValid) {
-      throw new AppError("Invalid OTP", HttpStatus.BAD_REQUEST)
+      throw new AppError(AuthMessages.INVALID_OTP, HttpStatus.BAD_REQUEST)
     }
 
     // OTP is valid → delete it (prevents reuse)

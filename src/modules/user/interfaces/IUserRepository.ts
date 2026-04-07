@@ -11,7 +11,7 @@ export interface IUserRepository {
 
   updateUser(id: string, data: Partial<IUser>): Promise<IUser | null>
 
-  findAllUsers(): Promise<IUser[]>
+  findAllUsers(page?: number, limit?: number): Promise<{ users: IUser[]; totalCount: number }>
 
   findById(id: string): Promise<IUser | null>
 

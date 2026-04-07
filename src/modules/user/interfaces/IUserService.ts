@@ -4,7 +4,7 @@ import { UserStatus } from "../../../shared/enums/userStatus.enum"
 
 export interface IUserService {
 
-  getUsers(): Promise<UserResponseDTO[]>
+  getUsers(page?: number, limit?: number): Promise<{ users: UserResponseDTO[]; totalCount: number }>
 
   blockUser(userId: string): Promise<UserResponseDTO>
 

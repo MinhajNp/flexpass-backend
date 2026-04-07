@@ -2,17 +2,11 @@ import { Request, Response } from "express"
 import { inject, injectable } from "inversify"
 
 import { TYPES } from "../../../core/container/types"
-
 import { IAdminService } from "../interfaces/IAdminService"
-
 import { asyncHandler } from "../../../shared/utils/asyncHandler"
 import { sendResponse } from "../../../shared/utils/response"
-
 import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
-
-import { User } from "../../user/entities/user.entity"
-import { Gym } from "../../gym/entities/gym.entity"
-import { CheckIn } from "../../gym/entities/checkin.entity"
+import { AdminMessages } from "../../../shared/constants/messages/admin.messages"
 
 @injectable()
 export class AdminController {
@@ -23,88 +17,94 @@ export class AdminController {
   ) {}
 
   // ---------------------------
-  // Get dashboard stats
+  // Gym Management: Stats
   // ---------------------------
-  getDashboardStats = asyncHandler(async (req: Request, res: Response) => {
-    
-    // Total Users (where role is 'USER')
-    const totalUsers = await User.countDocuments({ role: 'USER' });
+  getGymManagementStats = asyncHandler(async (_req: Request, res: Response) => {
+    const result = await this.adminService.getGymManagementStats();
+    sendResponse(res, HttpStatus.OK, AdminMessages.GYM_STATS_FETCHED, result);
+  })
 
-    // Active Gyms (where status is 'ACTIVE')
-    const activeGyms = await Gym.countDocuments({ status: 'APPROVED' });
+  // ---------------------------
+  // Gym Management: List Gyms
+  // ---------------------------
+  getPartnerGyms = asyncHandler(async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const { gyms, totalCount } = await this.adminService.getPartnerGyms(page, limit);
+    sendResponse(res, HttpStatus.OK, AdminMessages.PARTNER_GYMS_FETCHED, { data: gyms, totalCount, currentPage: page });
+  })
 
-    // Today's Check-ins
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-    const todaysCheckins = await CheckIn.countDocuments({
-      createdAt: { $gte: startOfDay, $lte: endOfDay }
-    });
+  // ---------------------------
+  // Gym Management: Update Status
+  // ---------------------------
+  updateGymStatus = asyncHandler(async (req: Request, res: Response) => {
+    const id = req.params.id as string;
+    const { action } = req.body;
+    await this.adminService.updateGymStatus(id, action);
+    sendResponse(res, HttpStatus.OK, AdminMessages.GYM_STATUS_UPDATED);
+  })
 
-    const payload = {
-      totalUsers,
-      activeGyms,
-      todaysCheckins,
-      monthlyRevenue: 840000,
-      pendingPayouts: 120000
-    };
-
-    sendResponse(res, HttpStatus.OK, "Dashboard stats fetched successfully", payload);
-
+  // ---------------------------
+  // Dashboard Stats
+  // ---------------------------
+  getDashboardStats = asyncHandler(async (_req: Request, res: Response) => {
+    const result = await this.adminService.getDashboardStats();
+    sendResponse(res, HttpStatus.OK, AdminMessages.DASHBOARD_STATS_FETCHED, result);
   })
 
   // ---------------------------
   // Get all users
   // ---------------------------
   getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const { users, totalCount } = await this.adminService.getAllUsers(page, limit);
 
-    const users = await this.adminService.getAllUsers();
-    
-    // Map existing UserResponseDTO to match frontend AdminUser interface with actual DB subscription & stats
     const mappedUsers = users.map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: u.role,
-      status: u.status === 'ACTIVE' ? 'Active' : (u.status === 'SUSPENDED' ? 'Suspended' : u.status),
-      membershipPlan: u.active_membership?.plan || 'No Plan',
-      expiryDate: u.active_membership?.expiryDate ? new Date(u.active_membership.expiryDate).toISOString() : 'N/A',
+      id:             u.id,
+      name:           u.name,
+      email:          u.email,
+      role:           u.role,
+      status:         u.status === 'ACTIVE' ? 'Active' : (u.status === 'SUSPENDED' ? 'Suspended' : u.status),
+      membershipPlan: (u.active_membership && typeof u.active_membership === 'object' && u.active_membership.plan)
+        ? u.active_membership.plan
+        : 'No Plan',
+      expiryDate: (typeof u.active_membership === 'object' && u.active_membership?.expiryDate)
+        ? new Date(u.active_membership.expiryDate).toISOString()
+        : 'N/A',
       totalCheckins: u.check_in_count || 0,
     }));
 
-    sendResponse(res, HttpStatus.OK, "Users fetched successfully", mappedUsers);
-
+    sendResponse(res, HttpStatus.OK, AdminMessages.USERS_FETCHED, { data: mappedUsers, totalCount, currentPage: page });
   })
 
   // ---------------------------
   // Toggle user status
   // ---------------------------
   toggleUserStatus = asyncHandler(async (req: Request, res: Response) => {
-
     const id = req.params.id as string;
-    const { action } = req.body; // 'activate' or 'suspend'
-    
-    let user;
-    if (action === 'suspend') {
-      user = await this.adminService.blockUser(id);
-    } else {
-      user = await this.adminService.unblockUser(id);
-    }
+    const { action } = req.body;
+
+    const user = action === 'suspend'
+      ? await this.adminService.blockUser(id)
+      : await this.adminService.unblockUser(id);
 
     const mappedUser = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status === 'ACTIVE' ? 'Active' : (user.status === 'SUSPENDED' ? 'Suspended' : user.status),
-      membershipPlan: user.active_membership?.plan || 'No Plan',
-      expiryDate: user.active_membership?.expiryDate ? new Date(user.active_membership.expiryDate).toISOString() : 'N/A',
+      id:             user.id,
+      name:           user.name,
+      email:          user.email,
+      role:           user.role,
+      status:         user.status === 'ACTIVE' ? 'Active' : (user.status === 'SUSPENDED' ? 'Suspended' : user.status),
+      membershipPlan: (user.active_membership && typeof user.active_membership === 'object' && user.active_membership.plan)
+        ? user.active_membership.plan
+        : 'No Plan',
+      expiryDate: (typeof user.active_membership === 'object' && user.active_membership?.expiryDate)
+        ? new Date(user.active_membership.expiryDate).toISOString()
+        : 'N/A',
       totalCheckins: user.check_in_count || 0,
     };
 
-    sendResponse(res, HttpStatus.OK, "User status updated successfully", mappedUser);
-
+    sendResponse(res, HttpStatus.OK, AdminMessages.USER_STATUS_UPDATED, mappedUser);
   })
 
 }
