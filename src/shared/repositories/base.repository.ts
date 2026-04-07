@@ -1,21 +1,10 @@
 import { Model, Document } from 'mongoose'
 import { IBaseRepository } from './IBaseRepository'
 
-/**
- * Generic abstract base repository.
- *
- * Open/Closed Principle:
- *   CLOSED — common CRUD lives here and is never changed when adding new repos.
- *   OPEN   — each concrete repo extends and adds only its domain-specific queries.
- *
- * Single generic <T extends Document> works cleanly because the project's entity
- * interfaces (IUser, IGym, …) already extend Mongoose Document, so the same type
- * serves both as the Mongoose document type and the public interface type.
- */
+
 export abstract class BaseRepository<T extends Document>
   implements IBaseRepository<T> {
 
-  /** Every concrete repo declares which Mongoose model it operates on. */
   protected abstract model: Model<T>
 
   // ── Common CRUD ──────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer"
 import { injectable } from "inversify"
-import { IOtpEmailService } from "./IOtpEmailService"
+import { IOtpEmailService } from "../interfaces/IOtpEmailService"
 import { env } from "../../../core/config/env"
 
 @injectable()
