@@ -7,6 +7,7 @@ import { asyncHandler } from "../../../shared/utils/asyncHandler"
 import { sendResponse } from "../../../shared/utils/response"
 import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
 import { AdminMessages } from "../../../shared/constants/messages/admin.messages"
+import { mapUserToAdminResponseDTO } from "../mappers/admin.mapper"
 
 @injectable()
 export class AdminController {
@@ -60,20 +61,7 @@ export class AdminController {
     const limit = parseInt(req.query.limit as string) || 10;
     const { users, totalCount } = await this.adminService.getAllUsers(page, limit);
 
-    const mappedUsers = users.map(u => ({
-      id:             u.id,
-      name:           u.name,
-      email:          u.email,
-      role:           u.role,
-      status:         u.status === 'ACTIVE' ? 'Active' : (u.status === 'SUSPENDED' ? 'Suspended' : u.status),
-      membershipPlan: (u.active_membership && typeof u.active_membership === 'object' && u.active_membership.plan)
-        ? u.active_membership.plan
-        : 'No Plan',
-      expiryDate: (typeof u.active_membership === 'object' && u.active_membership?.expiryDate)
-        ? new Date(u.active_membership.expiryDate).toISOString()
-        : 'N/A',
-      totalCheckins: u.check_in_count || 0,
-    }));
+    const mappedUsers = users.map(mapUserToAdminResponseDTO);
 
     sendResponse(res, HttpStatus.OK, AdminMessages.USERS_FETCHED, { data: mappedUsers, totalCount, currentPage: page });
   })
@@ -89,20 +77,7 @@ export class AdminController {
       ? await this.adminService.blockUser(id)
       : await this.adminService.unblockUser(id);
 
-    const mappedUser = {
-      id:             user.id,
-      name:           user.name,
-      email:          user.email,
-      role:           user.role,
-      status:         user.status === 'ACTIVE' ? 'Active' : (user.status === 'SUSPENDED' ? 'Suspended' : user.status),
-      membershipPlan: (user.active_membership && typeof user.active_membership === 'object' && user.active_membership.plan)
-        ? user.active_membership.plan
-        : 'No Plan',
-      expiryDate: (typeof user.active_membership === 'object' && user.active_membership?.expiryDate)
-        ? new Date(user.active_membership.expiryDate).toISOString()
-        : 'N/A',
-      totalCheckins: user.check_in_count || 0,
-    };
+    const mappedUser = mapUserToAdminResponseDTO(user);
 
     sendResponse(res, HttpStatus.OK, AdminMessages.USER_STATUS_UPDATED, mappedUser);
   })

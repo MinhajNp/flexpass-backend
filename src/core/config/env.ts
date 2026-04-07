@@ -11,7 +11,10 @@ const envSchema = z.object({
   OTP_EXPIRY: z.string(),
   EMAIL_USER: z.string(),
   EMAIL_PASS: z.string(),
-  CLIENT_URL: z.string()
+  CLIENT_URL: z.string(),
+  CLOUDINARY_CLOUD_NAME: z.string(),
+  CLOUDINARY_API_KEY: z.string(),
+  CLOUDINARY_API_SECRET: z.string()
 })
 
 const parsed = envSchema.parse(process.env)
@@ -24,5 +27,10 @@ export const env = {
   OTP_EXPIRY: Number(parsed.OTP_EXPIRY),
   EMAIL_USER: parsed.EMAIL_USER,
   EMAIL_PASS: parsed.EMAIL_PASS,
-  CLIENT_URL: parsed.CLIENT_URL
+  CLIENT_URL: parsed.CLIENT_URL,
+  CLOUDINARY: {
+    CLOUD_NAME: parsed.CLOUDINARY_CLOUD_NAME,
+    API_KEY: parsed.CLOUDINARY_API_KEY,
+    API_SECRET: parsed.CLOUDINARY_API_SECRET
+  }
 }

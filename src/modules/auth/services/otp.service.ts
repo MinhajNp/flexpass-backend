@@ -71,4 +71,27 @@ export class OtpService implements IOtpService {
     // OTP is valid → delete it (prevents reuse)
     await this.otpRepository.deleteOtp(email)
   }
+
+  // --------------------------------------------------
+  // Validate OTP (without deletion)
+  // --------------------------------------------------
+  async validateOtp(email: string, otp: string): Promise<void> {
+
+    const otpRecord = await this.otpRepository.findByEmail(email)
+
+    if (!otpRecord) {
+      throw new AppError(AuthMessages.OTP_NOT_FOUND, HttpStatus.BAD_REQUEST)
+    }
+
+    if (otpRecord.expiresAt < new Date()) {
+      await this.otpRepository.deleteOtp(email)
+      throw new AppError(AuthMessages.OTP_EXPIRED, HttpStatus.BAD_REQUEST)
+    }
+
+    const isValid = await bcrypt.compare(otp, otpRecord.otp)
+
+    if (!isValid) {
+      throw new AppError(AuthMessages.INVALID_OTP, HttpStatus.BAD_REQUEST)
+    }
+  }
 }

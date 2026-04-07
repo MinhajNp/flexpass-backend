@@ -18,7 +18,7 @@ import { IAuthService } from "../interfaces/IAuthService"
 import { TYPES } from "../../../core/container/types"
 import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
 import { AuthMessages } from "../../../shared/constants/messages/auth.messages"
-
+import { mapAuthResponseToDTO } from "../mappers/auth.mapper"
 
 @injectable()
 export class AuthController {
@@ -55,7 +55,7 @@ export class AuthController {
 
       setRefreshTokenCookie(res, refreshToken)
 
-      sendResponse(res, HttpStatus.OK, AuthMessages.LOGIN_SUCCESS, { user, accessToken })
+      sendResponse(res, HttpStatus.OK, AuthMessages.LOGIN_SUCCESS, mapAuthResponseToDTO(user, accessToken))
     } catch (error: any) {
       if (error.statusCode === HttpStatus.UNAUTHORIZED || error.message?.includes("Invalid email or password") || error.message?.includes("Invalid credentials")) {
         return res.status(HttpStatus.UNAUTHORIZED).json({ message: AuthMessages.INVALID_CREDENTIALS });
@@ -78,7 +78,7 @@ export class AuthController {
 
     setRefreshTokenCookie(res, refreshToken)
 
-    sendResponse(res, HttpStatus.OK, AuthMessages.GOOGLE_LOGIN_SUCCESS, { user, accessToken })
+    sendResponse(res, HttpStatus.OK, AuthMessages.GOOGLE_LOGIN_SUCCESS, mapAuthResponseToDTO(user, accessToken))
 
   })
 
@@ -91,6 +91,23 @@ export class AuthController {
     const validatedData = verifyOtpSchema.parse(req.body)
 
     await this.authService.verifyOtp(
+      validatedData.email,
+      validatedData.otp
+    )
+
+    sendResponse(res, HttpStatus.OK, AuthMessages.OTP_VERIFIED)
+
+  })
+
+
+  // --------------------------------------------------
+  // Validate Reset OTP
+  // --------------------------------------------------
+  validateResetOtp = asyncHandler(async (req: Request, res: Response) => {
+
+    const validatedData = verifyOtpSchema.parse(req.body)
+
+    await this.authService.validateResetOtp(
       validatedData.email,
       validatedData.otp
     )

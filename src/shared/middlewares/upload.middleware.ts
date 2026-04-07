@@ -1,7 +1,7 @@
 import multer from "multer"
-import path from "path"
-import fs from "fs"
 import { Request } from "express"
+import { CloudinaryStorage } from "multer-storage-cloudinary"
+import cloudinary from "../../core/config/cloudinary"
 import { AppError } from "../utils/AppError"
 import { HttpStatus } from "../enums/httpStatus.enum"
 
@@ -9,19 +9,14 @@ import { HttpStatus } from "../enums/httpStatus.enum"
 // Storage Configuration
 // --------------------------------------------------
 
-const storage = multer.diskStorage({
-  destination: (_req: Request, _file: Express.Multer.File, cb) => {
-    const uploadPath = path.join(process.cwd(), "uploads", "gym-docs")
-    
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true })
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (_req: Request, file: Express.Multer.File) => {
+    return {
+      folder: "flexpass/gym-docs",
+      public_id: `${file.fieldname}-${Date.now()}`,
+      resource_type: "auto" // Supports both images and PDFs
     }
-    
-    cb(null, uploadPath)
-  },
-  filename: (_req: Request, file: Express.Multer.File, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`
-    cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`)
   }
 })
 

@@ -32,6 +32,7 @@ export interface IAuthService {
 
   forgotPassword(email: string): Promise<{ message: string }>
   resendOtp(email: string): Promise<void>
+  validateResetOtp(email: string, otp: string): Promise<void>
 
   resetPassword(
     email: string,

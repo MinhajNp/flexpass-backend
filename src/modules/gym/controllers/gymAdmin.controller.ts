@@ -8,6 +8,8 @@ import { HttpStatus } from "../../../shared/enums/httpStatus.enum";
 import { AppError } from "../../../shared/utils/AppError";
 import { GymMessages } from "../../../shared/constants/messages/gym.messages";
 
+import { mapGymAdminStatsToDTO, mapCheckInToResponseDTO } from "../mappers/gym.mapper";
+
 @injectable()
 export class GymAdminController {
   constructor(
@@ -19,7 +21,7 @@ export class GymAdminController {
     if (!gymId) throw new AppError(GymMessages.GYM_ID_REQUIRED, HttpStatus.BAD_REQUEST);
     
     const stats = await this.gymAdminService.getDashboardStats(gymId);
-    sendResponse(res, HttpStatus.OK, GymMessages.DASHBOARD_STATS_FETCHED, stats);
+    sendResponse(res, HttpStatus.OK, GymMessages.DASHBOARD_STATS_FETCHED, mapGymAdminStatsToDTO(stats));
   });
 
   getTodaySlots = asyncHandler(async (req: Request, res: Response) => {
@@ -35,7 +37,8 @@ export class GymAdminController {
     if (!gymId) throw new AppError(GymMessages.GYM_ID_REQUIRED, HttpStatus.BAD_REQUEST);
 
     const checkIns = await this.gymAdminService.getRecentCheckIns(gymId);
-    sendResponse(res, HttpStatus.OK, GymMessages.RECENT_CHECKINS_FETCHED, checkIns);
+    const mappedCheckIns = checkIns.map(mapCheckInToResponseDTO);
+    sendResponse(res, HttpStatus.OK, GymMessages.RECENT_CHECKINS_FETCHED, mappedCheckIns);
   });
 
   processCheckIn = asyncHandler(async (req: Request, res: Response) => {
@@ -47,6 +50,6 @@ export class GymAdminController {
     }
 
     const result = await this.gymAdminService.processCheckIn(gymId, userId, type);
-    sendResponse(res, HttpStatus.CREATED, GymMessages.CHECKIN_PROCESSED, result);
+    sendResponse(res, HttpStatus.CREATED, GymMessages.CHECKIN_PROCESSED, mapCheckInToResponseDTO(result));
   });
 }

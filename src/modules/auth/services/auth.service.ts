@@ -242,6 +242,20 @@ export class AuthService implements IAuthService {
 }
 
   // --------------------------------------------------
+  // Validate Reset OTP
+  // --------------------------------------------------
+  async validateResetOtp(email: string, otp: string): Promise<void> {
+
+    const user = await this.userRepository.findByEmail(email)
+
+    if (!user) {
+      throw new AppError(AuthMessages.USER_NOT_FOUND, HttpStatus.NOT_FOUND)
+    }
+
+    await this.otpService.validateOtp(email, otp)
+  }
+
+  // --------------------------------------------------
   // Reset Password
   // --------------------------------------------------
   async resetPassword(

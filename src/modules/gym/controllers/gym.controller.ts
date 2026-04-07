@@ -13,6 +13,7 @@ import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
 import { AppError } from "../../../shared/utils/AppError"
 import { GymMessages } from "../../../shared/constants/messages/gym.messages"
 
+import { mapGymToResponseDTO, mapRequestToApplyGymDTO } from "../mappers/gym.mapper"
 import {
   applyGymSchema,
   approveGymSchema,
@@ -32,41 +33,10 @@ export class GymController {
   // Apply Gym
   // -----------------------------------------
   applyGym = asyncHandler(async (req: Request, res: Response) => {
-    // 1. Extract files from Multer
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-    
-    // 2. Parse JSON strings back to objects (since they are sent via FormData)
-    const bankDetails = typeof req.body.bankDetails === 'string' 
-      ? JSON.parse(req.body.bankDetails) 
-      : req.body.bankDetails;
-      
-    const facilities = typeof req.body.facilities === 'string' 
-      ? JSON.parse(req.body.facilities) 
-      : req.body.facilities;
+    // 1. Map Request to DTO using GymMapper (handles parsing and document mapping)
+    const dataToValidate = mapRequestToApplyGymDTO(req);
 
-    const agreedToTerms = req.body.agreedToTerms === 'true' || req.body.agreedToTerms === true;
-
-    // 3. Map files to the documents array format
-    const documents: any[] = [];
-    if (files) {
-      Object.keys(files).forEach((key) => {
-        const file = files[key][0];
-        documents.push({
-          name: key,
-          url: `/uploads/gym-docs/${file.filename}`, // Local path for now
-        });
-      });
-    }
-
-    // 4. Consolidate data for validation
-    const dataToValidate = {
-      ...req.body,
-      bankDetails,
-      facilities,
-      agreedToTerms,
-      documents
-    };
-
+    // 2. Validate consolidated data
     const validatedData = applyGymSchema.parse(dataToValidate);
 
     const result = await this.gymService.applyGym(validatedData);
