@@ -28,7 +28,7 @@ export class GymRepository
   }
 
   async findPendingGyms(): Promise<IGym[]> {
-    return Gym.find({ status: GymStatus.PENDING }).lean() as unknown as IGym[]
+    return Gym.find({ status: { $in: [GymStatus.PENDING, GymStatus.UNDER_REVIEW] } }).lean() as unknown as IGym[]
   }
 
   async findPartnerGyms(page: number = 1, limit: number = 10): Promise<{ gyms: IGym[]; totalCount: number }> {
@@ -50,7 +50,7 @@ export class GymRepository
     const skip = (page - 1) * limit
     const query = {
       status: {
-        $in: [GymStatus.PENDING, GymStatus.REJECTED]
+        $in: [GymStatus.PENDING, GymStatus.UNDER_REVIEW, GymStatus.REJECTED]
       }
     }
     const [applications, totalCount] = await Promise.all([

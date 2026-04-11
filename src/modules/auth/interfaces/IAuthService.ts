@@ -1,5 +1,6 @@
 import { Role } from "../../../shared/enums/role.enum"
 import { UserResponseDTO } from "../../user/dto/user.response.dto"
+import { IUser } from "../../user/entities/user.entity"
 
 export interface IAuthService {
 
@@ -14,13 +15,13 @@ export interface IAuthService {
     email: string
     password: string
   }): Promise<{
-    user: UserResponseDTO
+    user: IUser
     accessToken: string
     refreshToken: string
   }>
 
   googleLogin(idToken: string): Promise<{
-    user: UserResponseDTO
+    user: IUser
     accessToken: string
     refreshToken: string
   }>

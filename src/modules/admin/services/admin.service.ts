@@ -91,12 +91,12 @@ export class AdminService implements IAdminService {
           city:            gym.city,
           fullAddress:     gym.fullAddress,
           documents:       gym.documents as any,
-          status:          gym.status === GymStatus.APPROVED ? 'Active' : gym.status === GymStatus.SUSPENDED ? 'Suspended' : 'Pending',
+          status:          gym.status,
           createdAt:       (gym as any).createdAt,
-          joinedAt:        (gym as any).createdAt,
-          category:        cat,
+          joinedAt:        (gym as any).createdAt?.toISOString(),
+          category:        gym.category || 'BASIC',
           isEmergencyMode: gym.isEmergencyMode?.active || false,
-        };
+        } as unknown as GymResponseDTO;
       }),
       totalCount
     };

@@ -49,7 +49,7 @@ export class AuthController {
     try {
       const validatedData = loginSchema.parse(req.body)
 
-      const result = await this.authService.login(validatedData)
+      const result = await this.authService.login(validatedData )
 
       const { user, accessToken, refreshToken } = result
 

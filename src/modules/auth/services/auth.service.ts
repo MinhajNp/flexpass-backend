@@ -18,6 +18,7 @@ import { TYPES } from "../../../core/container/types"
 
 import { mapUserToResponseDTO } from "../../user/mappers/user.mapper"
 import { UserResponseDTO } from "../../user/dto/user.response.dto"
+import { IUser } from "../../user/entities/user.entity"
 import { RegisterDTO } from "../dto/auth.register.dto"
 import { LoginDTO } from "../dto/auth.login.dto"
 
@@ -79,12 +80,12 @@ export class AuthService implements IAuthService {
   async login(
     data: LoginDTO
   ): Promise<{
-    user: UserResponseDTO
+    user: IUser
     accessToken: string
     refreshToken: string
   }> {
 
-    const user = await this.userRepository.findByEmail(data.email)
+    const user = await this.userRepository.findByEmail(data.email) 
 
     if (!user) {
       throw new AppError(AuthMessages.INVALID_CREDENTIALS, HttpStatus.UNAUTHORIZED)
@@ -118,7 +119,7 @@ export class AuthService implements IAuthService {
     const refreshToken = this.tokenService.generateRefreshToken(payload)
 
     return {
-      user: mapUserToResponseDTO(user),
+      user,
       accessToken,
       refreshToken
     }
@@ -128,7 +129,7 @@ export class AuthService implements IAuthService {
   // Google Login
   // --------------------------------------------------
   async googleLogin(idToken: string): Promise<{
-    user: UserResponseDTO;
+    user: IUser;
     accessToken: string;
     refreshToken: string;
   }> {
@@ -180,7 +181,7 @@ export class AuthService implements IAuthService {
     const refreshToken = this.tokenService.generateRefreshToken(tokenPayload);
 
     return {
-      user: mapUserToResponseDTO(user),
+      user,
       accessToken,
       refreshToken
     }

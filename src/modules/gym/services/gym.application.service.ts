@@ -59,7 +59,7 @@ export class GymApplicationService implements IGymApplicationService {
         throw new AppError(GymMessages.ALREADY_EXISTS(currentStatus.toLowerCase()), HttpStatus.BAD_REQUEST)
       }
 
-      // If status is REJECTED (or any legacy status like UNDER_REVIEW), allow re-application
+      // If status is REJECTED or UNDER_REVIEW, allow re-application
       const updatedGym = await this.gymRepository.updateGym(
         existingGym._id.toString(),
         {
@@ -129,9 +129,8 @@ export class GymApplicationService implements IGymApplicationService {
   async approveGym(id: string, category: string): Promise<GymResponseDTO> {
     const gym = await this.getGymOrThrow(id)
     
-    // Support legacy 'UNDER_REVIEW' status string for a smooth transition
-    const currentStatus = gym.status as any;
-    if (currentStatus !== GymStatus.PENDING && currentStatus !== 'UNDER_REVIEW') {
+    const currentStatus = gym.status;
+    if (currentStatus !== GymStatus.PENDING && currentStatus !== GymStatus.UNDER_REVIEW) {
       throw new AppError(GymMessages.INVALID_APPROVAL_STATE, HttpStatus.BAD_REQUEST)
     }
 
@@ -153,9 +152,8 @@ export class GymApplicationService implements IGymApplicationService {
   async rejectGym(id: string, reason: string): Promise<GymResponseDTO> {
     const gym = await this.getGymOrThrow(id)
     
-    // Support legacy 'UNDER_REVIEW' status string for a smooth transition
-    const currentStatus = gym.status as any;
-    if (currentStatus !== GymStatus.PENDING && currentStatus !== 'UNDER_REVIEW') {
+    const currentStatus = gym.status;
+    if (currentStatus !== GymStatus.PENDING && currentStatus !== GymStatus.UNDER_REVIEW) {
       throw new AppError(GymMessages.INVALID_REJECTION_STATE, HttpStatus.BAD_REQUEST)
     }
 
