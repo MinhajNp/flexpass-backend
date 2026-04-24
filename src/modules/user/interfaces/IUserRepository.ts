@@ -13,6 +13,8 @@ export interface IUserRepository {
 
   findAllUsers(page?: number, limit?: number): Promise<{ users: IUser[]; totalCount: number }>
 
+  countByRole(role: string): Promise<number>
+
   findById(id: string): Promise<IUser | null>
 
 }

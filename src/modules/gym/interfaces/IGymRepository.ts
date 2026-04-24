@@ -1,4 +1,12 @@
 import { IGym } from "../entities/gym.entity"
+import { GymStatus } from "../../../shared/enums/gymStatus.enum"
+
+export interface IGymManagementStats {
+  totalGyms: number;
+  premiumCount: number;
+  standardCount: number;
+  basicCount: number;
+}
 
 export interface IGymRepository {
   createGym(data: Partial<IGym>): Promise<IGym>
@@ -11,4 +19,8 @@ export interface IGymRepository {
   updateGym(id: string, data: Partial<IGym>): Promise<IGym | null>
   findByInvitationToken(token: string): Promise<IGym | null>
   clearInvitationToken(gymId: string): Promise<void>
+  
+  // Statistical methods
+  getManagementStats(): Promise<IGymManagementStats>
+  countByStatus(status: GymStatus): Promise<number>
 }

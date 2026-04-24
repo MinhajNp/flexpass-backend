@@ -40,4 +40,8 @@ export class UserRepository
   async updateUserStatus(userId: string, status: UserStatus): Promise<IUser | null> {
     return User.findByIdAndUpdate(userId, { status }, { new: true }).lean() as unknown as IUser | null
   }
+
+  async countByRole(role: string): Promise<number> {
+    return User.countDocuments({ role })
+  }
 }

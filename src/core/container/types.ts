@@ -5,6 +5,7 @@ export const TYPES = {
   IGymRepository: Symbol.for("IGymRepository"),
   IOtpRepository: Symbol.for("IOtpRepository"),
   IRegistrationTokenRepository: Symbol.for("IRegistrationTokenRepository"),
+  ICheckInRepository: Symbol.for("ICheckInRepository"),
 
   // Services
   IAuthService: Symbol.for("IAuthService"),

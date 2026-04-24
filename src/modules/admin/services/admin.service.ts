@@ -3,18 +3,18 @@ import { inject, injectable } from "inversify"
 import { IAdminService, IGymManagementStats, IDashboardStats } from "../interfaces/IAdminService"
 import { IGymRepository } from "../../gym/interfaces/IGymRepository"
 import { IUserService } from "../../user/interfaces/IUserService"
+import { IUserRepository } from "../../user/interfaces/IUserRepository"
+import { ICheckInRepository } from "../../gym/interfaces/ICheckInRepository"
 
 import { TYPES } from "../../../core/container/types"
 
 import { UserResponseDTO } from "../../user/dto/user.response.dto"
 import { GymResponseDTO } from "../../gym/dto/gym.response.dto"
-import { Gym } from "../../gym/entities/gym.entity"
-import { User } from "../../user/entities/user.entity"
-import { CheckIn } from "../../gym/entities/checkin.entity"
 import { GymStatus } from "../../../shared/enums/gymStatus.enum"
 import { AppError } from "../../../shared/utils/AppError"
 import { HttpStatus } from "../../../shared/enums/httpStatus.enum"
 import { AdminMessages } from "../../../shared/constants/messages/admin.messages"
+import { Role } from "../../../shared/enums/role.enum"
 
 @injectable()
 export class AdminService implements IAdminService {
@@ -22,8 +22,12 @@ export class AdminService implements IAdminService {
   constructor(
     @inject(TYPES.IUserService)
     private userService: IUserService,
+    @inject(TYPES.IUserRepository)
+    private userRepository: IUserRepository,
     @inject(TYPES.IGymRepository)
-    private gymRepository: IGymRepository
+    private gymRepository: IGymRepository,
+    @inject(TYPES.ICheckInRepository)
+    private checkInRepository: ICheckInRepository
   ) {}
 
   // -----------------------------------------
@@ -51,24 +55,7 @@ export class AdminService implements IAdminService {
   // Gym Management Stats
   // -----------------------------------------
   async getGymManagementStats(): Promise<IGymManagementStats> {
-    const stats = await Gym.aggregate([
-      { $match: { status: { $in: [GymStatus.APPROVED, GymStatus.SUSPENDED] } } },
-      {
-        $facet: {
-          totalGyms:     [{ $count: "count" }],
-          premiumCount:  [{ $match: { category: "PREMIUM"  } }, { $count: "count" }],
-          standardCount: [{ $match: { category: "STANDARD" } }, { $count: "count" }],
-          basicCount:    [{ $match: { category: "BASIC"    } }, { $count: "count" }]
-        }
-      }
-    ]);
-
-    return {
-      totalGyms:     stats[0].totalGyms[0]?.count     || 0,
-      premiumCount:  stats[0].premiumCount[0]?.count  || 0,
-      standardCount: stats[0].standardCount[0]?.count || 0,
-      basicCount:    stats[0].basicCount[0]?.count    || 0,
-    };
+    return this.gymRepository.getManagementStats();
   }
 
   // -----------------------------------------
@@ -116,24 +103,22 @@ export class AdminService implements IAdminService {
       throw new AppError(AdminMessages.UNKNOWN_ACTION(action), HttpStatus.BAD_REQUEST);
     }
 
-    await Gym.findByIdAndUpdate(gymId, { status: dbStatus });
+    await this.gymRepository.updateGym(gymId, { status: dbStatus });
   }
 
   // -----------------------------------------
   // Dashboard Stats
   // -----------------------------------------
   async getDashboardStats(): Promise<IDashboardStats> {
-    const totalUsers     = await User.countDocuments({ role: 'USER' });
-    const activeGyms     = await Gym.countDocuments({ status: GymStatus.APPROVED });
+    const totalUsers     = await this.userRepository.countByRole(Role.USER);
+    const activeGyms     = await this.gymRepository.countByStatus(GymStatus.APPROVED);
 
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    const todaysCheckins = await CheckIn.countDocuments({
-      createdAt: { $gte: startOfDay, $lte: endOfDay }
-    });
+    const todaysCheckins = await this.checkInRepository.countCheckInsInRange(startOfDay, endOfDay);
 
     return {
       totalUsers,

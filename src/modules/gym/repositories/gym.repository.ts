@@ -3,7 +3,7 @@ import { injectable } from 'inversify'
 
 import { Gym, IGym } from '../entities/gym.entity'
 import { GymStatus } from '../../../shared/enums/gymStatus.enum'
-import { IGymRepository } from '../interfaces/IGymRepository'
+import { IGymRepository, IGymManagementStats } from '../interfaces/IGymRepository'
 import { BaseRepository } from '../../../shared/repositories/base.repository'
 
 @injectable()
@@ -69,5 +69,30 @@ export class GymRepository
       invitationToken: null,
       invitationTokenExpiresAt: null
     })
+  }
+
+  async getManagementStats(): Promise<IGymManagementStats> {
+    const stats = await Gym.aggregate([
+      { $match: { status: { $in: [GymStatus.APPROVED, GymStatus.SUSPENDED] } } },
+      {
+        $facet: {
+          totalGyms:     [{ $count: "count" }],
+          premiumCount:  [{ $match: { category: "PREMIUM"  } }, { $count: "count" }],
+          standardCount: [{ $match: { category: "STANDARD" } }, { $count: "count" }],
+          basicCount:    [{ $match: { category: "BASIC"    } }, { $count: "count" }]
+        }
+      }
+    ]);
+
+    return {
+      totalGyms:     stats[0].totalGyms[0]?.count     || 0,
+      premiumCount:  stats[0].premiumCount[0]?.count  || 0,
+      standardCount: stats[0].standardCount[0]?.count || 0,
+      basicCount:    stats[0].basicCount[0]?.count    || 0,
+    };
+  }
+
+  async countByStatus(status: GymStatus): Promise<number> {
+    return Gym.countDocuments({ status });
   }
 }

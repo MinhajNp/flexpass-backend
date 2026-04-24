@@ -5,6 +5,7 @@ import { IUserRepository } from "../../modules/user/interfaces/IUserRepository"
 import { IGymRepository } from "../../modules/gym/interfaces/IGymRepository"
 import { IOtpRepository } from "../../modules/auth/interfaces/IOtpRepository"
 import { IRegistrationTokenRepository } from "../../modules/gym/interfaces/IRegistrationTokenRepository"
+import { ICheckInRepository } from "../../modules/gym/interfaces/ICheckInRepository"
 
 import { IAuthService } from "../../modules/auth/interfaces/IAuthService"
 import { IGymApplicationService } from "../../modules/gym/interfaces/IGymApplicationService"
@@ -14,6 +15,7 @@ import { UserRepository } from "../../modules/user/repositories/user.repository"
 import { GymRepository } from "../../modules/gym/repositories/gym.repository"
 import { OtpRepository } from "../../modules/auth/repositories/otp.repository"
 import { RegistrationTokenRepository } from "../../modules/gym/repositories/registrationToken.repository"
+import { CheckInRepository } from "../../modules/gym/repositories/checkin.repository"
 
 import { AuthService } from "../../modules/auth/services/auth.service"
 import { GymApplicationService } from "../../modules/gym/services/gym.application.service"
@@ -51,6 +53,7 @@ container.bind<IUserRepository>(TYPES.IUserRepository).to(UserRepository)
 container.bind<IGymRepository>(TYPES.IGymRepository).to(GymRepository)
 container.bind<IOtpRepository>(TYPES.IOtpRepository).to(OtpRepository)
 container.bind<IRegistrationTokenRepository>(TYPES.IRegistrationTokenRepository).to(RegistrationTokenRepository)
+container.bind<ICheckInRepository>(TYPES.ICheckInRepository).to(CheckInRepository)
 
 
 // services
