@@ -6,6 +6,7 @@ import { env } from '../config/env.js';
 export class AuthController {
   constructor(private authService: IAuthService) {}
 
+  // Login---------------------------------------------------------------------------------------------------------------
   login = async (req: Request, res: Response): Promise<void> => {
     const { accessToken, refreshToken } = await this.authService.login(
       req.body,
@@ -21,16 +22,19 @@ export class AuthController {
     res.json(accessToken);
   };
 
+  // Register-----------------------------------------------------------------------------------------------------------------------------
   register = async (req: Request, res: Response): Promise<void> => {
     const response = await this.authService.register(req.body);
     res.status(HttpStatus.CREATED).json(response);
   };
 
+  // Refresh------------------------------------------------------------------------------------------------------------------------------
   refresh = async (req: Request, res: Response): Promise<void> => {
     const response = await this.authService.refresh(req.cookies.refreshToken);
     res.json(response);
   };
 
+  // Logout--------------------------------------------------------------------------------------------------------------------------------
   logout = async (req: Request, res: Response): Promise<void> => {
     res.clearCookie('refreshToken');
 

@@ -20,6 +20,7 @@ import {
 export class AuthService implements IAuthService {
   constructor(private userRepository: IUserRepository) {}
 
+  // Login----------------------------------------------------------------------------------------------------
   login = async (data: LoginDTO): Promise<LoginResponseDTO> => {
     const user = await this.userRepository.findByEmail(data.email);
 
@@ -49,6 +50,7 @@ export class AuthService implements IAuthService {
     return response;
   };
 
+  // Register------------------------------------------------------------------------------------------------------
   register = async (data: RegisterDTO): Promise<RegisterResponseDTO> => {
     const existingUser = await this.userRepository.findByEmail(data.email);
 
@@ -73,6 +75,7 @@ export class AuthService implements IAuthService {
     };
   };
 
+  // Refresh Token---------------------------------------------------------------------------------------------------
   refresh = async (refreshToken: string): Promise<RefreshResponseDTO> => {
     if (!refreshToken) {
       throw new UnauthorizedError('Invalid or expired token');
@@ -95,7 +98,4 @@ export class AuthService implements IAuthService {
       accessToken: newAccessToken,
     };
   };
-
-
-  
 }
