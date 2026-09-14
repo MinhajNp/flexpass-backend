@@ -1,0 +1,8 @@
+import { HttpStatus } from '../enums/HttpStatus.js';
+import { AppError } from './AppError.js';
+
+export class UnauthorizedError extends AppError {
+  constructor(message: string) {
+    super(HttpStatus.UNAUTHORIZED, message);
+  }
+}
