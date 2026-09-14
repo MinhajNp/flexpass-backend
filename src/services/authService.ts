@@ -18,13 +18,18 @@ import {
 } from '../utils/jwt.js';
 
 export class AuthService implements IAuthService {
+  // Dependency Injection
   constructor(private userRepository: IUserRepository) {}
 
-  // Login----------------------------------------------------------------------------------------------------
+  // ==============================
+  // LOGIN
+  // ==============================
+
   login = async (data: LoginDTO): Promise<LoginResponseDTO> => {
     const user = await this.userRepository.findByEmail(data.email);
 
     if (!user) {
+      // dont reveal whether the email exists.
       throw new UnauthorizedError('Invalid email or password');
     }
 
@@ -34,23 +39,27 @@ export class AuthService implements IAuthService {
       throw new UnauthorizedError('Invalid email or password');
     }
 
+    // Access token -> short-lived, stored in frontend memory, used for API authentication.
+    // Refresh token -> long-lived, stored in an HTTP-only cookie, used for creating new accessToken.
     const accessToken = generateAccessToken({
       userId: user.id,
       role: user.role,
     });
+
     const refreshToken = generateRefreshToken({
       userId: user.id,
     });
 
-    const response: LoginResponseDTO = {
+    return {
       accessToken,
       refreshToken,
     };
-
-    return response;
   };
 
-  // Register------------------------------------------------------------------------------------------------------
+  // ==============================
+  // REGISTER
+  // ==============================
+
   register = async (data: RegisterDTO): Promise<RegisterResponseDTO> => {
     const existingUser = await this.userRepository.findByEmail(data.email);
 
@@ -58,14 +67,13 @@ export class AuthService implements IAuthService {
       throw new ConflictError('Email already exists');
     }
 
-    // otp verification
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const userData = {
       name: data.name,
       email: data.email,
       password: hashedPassword,
-      role: UserRole.USER,
+      role: UserRole.USER, // New users always start as USER.
     };
 
     await this.userRepository.create(userData);
@@ -75,12 +83,16 @@ export class AuthService implements IAuthService {
     };
   };
 
-  // Refresh Token---------------------------------------------------------------------------------------------------
+  // ==============================
+  // REFRESH TOKEN
+  // ==============================
+
   refresh = async (refreshToken: string): Promise<RefreshResponseDTO> => {
     if (!refreshToken) {
       throw new UnauthorizedError('Invalid or expired token');
     }
 
+    // Refresh token contains only userId, not the full user data.
     const verifiedToken = verifyRefreshToken(refreshToken);
 
     const user = await this.userRepository.findById(verifiedToken.userId);

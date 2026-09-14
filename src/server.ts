@@ -3,12 +3,20 @@ import connectDB from './config/database.js';
 import { env } from './config/env.js';
 import logger from './utils/logger.js';
 
-const startServer = async (): Promise<void> => {
-  connectDB();
+class Server {
+  // ==============================
+  // START SERVER
+  // ==============================
 
-  app.listen(env.PORT, () => {
-    logger.info(`server started on port ${env.PORT}`);
-  });
-};
+  public async start(): Promise<void> {
+    await connectDB();
 
-startServer();
+    app.listen(env.PORT, () => {
+      logger.info(`server started on port ${env.PORT}`);
+    });
+  }
+}
+
+const server = new Server();
+
+server.start();

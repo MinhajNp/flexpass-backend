@@ -1,6 +1,7 @@
 import { Document, Schema, model } from 'mongoose';
+import { UserRole } from '../enums/UserRole.js';
 
-type UserRole = 'USER' | 'GYM_ADMIN' | 'ADMIN';
+// type UserRole = 'USER' | 'GYM_ADMIN' | 'ADMIN';
 
 type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
 
@@ -49,8 +50,8 @@ const userSchema = new Schema<IUser>(
 
     role: {
       type: String,
-      enum: ['USER', 'GYM_ADMIN', 'ADMIN'],
-      default: 'USER',
+      enum: Object.values(UserRole),
+      default: UserRole.USER,
     },
 
     status: {

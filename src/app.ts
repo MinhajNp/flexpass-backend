@@ -1,15 +1,44 @@
-import express from 'express';
-import errorMiddleware from './middlewares/errorHandler.js';
-import authRoutes from './routes/authRoutes.js';
+import express, { type Express } from 'express';
 import cookieParser from 'cookie-parser';
 
-const app = express();
+import authRoutes from './routes/authRoutes.js';
+import errorMiddleware from './middlewares/errorHandler.js';
 
-app.use(express.json());
-app.use(cookieParser());
+class App {
+  public app: Express;
 
-app.use(errorMiddleware);
+  constructor() {
+    this.app = express();
 
-app.use('/auth', authRoutes);
+    this.configureMiddleware();
+    this.configureRoutes();
+    this.configureErrorHandler();
+  }
 
-export default app;
+  // ==============================
+  // MIDDLEWARE
+  // ==============================
+
+  private configureMiddleware(): void {
+    this.app.use(express.json());
+    this.app.use(cookieParser());
+  }
+
+  // ==============================
+  // ROUTES
+  // ==============================
+
+  private configureRoutes(): void {
+    this.app.use('/auth', authRoutes);
+  }
+
+  // ==============================
+  // ERROR HANDLER
+  // ==============================
+
+  private configureErrorHandler(): void {
+    this.app.use(errorMiddleware);
+  }
+}
+
+export default new App().app;
