@@ -19,6 +19,7 @@ class AuthRoutes {
     this.router.post('/login', authController.login);
     this.router.post('/register', authController.register);
     this.router.post('/refresh', authController.refresh);
+    this.router.post('/verify-otp', authController.verifyOtp);
     this.router.post('/logout', authController.logout);
   }
 }

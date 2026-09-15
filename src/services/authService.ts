@@ -16,10 +16,14 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from '../utils/jwt.js';
+import type { IOtpService } from '../interfaces/services/IOtpService.js';
 
 export class AuthService implements IAuthService {
   // Dependency Injection
-  constructor(private userRepository: IUserRepository) {}
+  constructor(
+    private userRepository: IUserRepository,
+    private otpService: IOtpService,
+  ) {}
 
   // ==============================
   // LOGIN
@@ -76,10 +80,13 @@ export class AuthService implements IAuthService {
       role: UserRole.USER, // New users always start as USER.
     };
 
-    await this.userRepository.create(userData);
+    const user = await this.userRepository.create(userData);
+
+    await this.otpService.sendOtp(user._id.toString(), user.email);
 
     return {
       message: 'User registered successfully',
+      userId: user._id.toString(),
     };
   };
 

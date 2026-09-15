@@ -30,6 +30,7 @@ export interface CreateUserDTO {
 
 export interface RegisterResponseDTO {
   message: string;
+  userId: string;
 }
 
 export interface RefreshTokenPayload {

@@ -1,18 +1,64 @@
-import type { CreateUserDTO } from '../dto/auth.dto.js';
+import type { Model } from 'mongoose';
+
 import type { IUserRepository } from '../interfaces/repositories/IUserRepository.js';
+import User, { type IUser } from '../models/userModel.js';
+import { BaseRepository } from './baseRepository.js';
+import type { UserStatus } from '../enums/UserStatus.js';
 
-import User from '../models/user.model.js';
+export class UserRepository
+  extends BaseRepository<IUser>
+  implements IUserRepository
+{
+  protected model: Model<IUser> = User;
 
-export class UserRepository implements IUserRepository {
-  findByEmail = async (email: string) => {
-    return await User.findOne({ email });
-  };
+  // ==============================
+  // FIND BY EMAIL
+  // ==============================
 
-  create = async (data: CreateUserDTO) => {
-    return await User.create(data);
-  };
+  async findByEmail(email: string): Promise<IUser | null> {
+    return this.findOne({ email });
+  }
 
-  findById = async (id: string) => {
-    return await User.findById(id);
-  };
+  // ==============================
+  // FIND ALL USERS
+  // ==============================
+
+  async findAllUsers(
+    page = 1,
+    limit = 10,
+  ): Promise<{ users: IUser[]; totalCount: number }> {
+    const skip = (page - 1) * limit;
+
+    const [users, totalCount] = await Promise.all([
+      this.model.find().skip(skip).limit(limit).lean<IUser[]>(),
+      this.model.countDocuments(),
+    ]);
+
+    return {
+      users,
+      totalCount,
+    };
+  }
+
+  // ==============================
+  // UPDATE USER STATUS
+  // ==============================
+
+  async updateUserStatus(
+    userId: string,
+    status: UserStatus,
+  ): Promise<IUser | null> {
+    return this.model.findByIdAndUpdate(userId, { status }, { new: true });
+  }
+
+  // ==============================
+  // UPDATE VERIFICATION STATUS
+  // ==============================
+
+  async updateVerificationStatus(
+    userId: string,
+    isVerified: boolean,
+  ): Promise<IUser | null> {
+    return this.model.findByIdAndUpdate(userId, { isVerified }, { new: true });
+  }
 }

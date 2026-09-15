@@ -1,9 +1,10 @@
 import { Document, Schema, model } from 'mongoose';
 import { UserRole } from '../enums/UserRole.js';
+import { UserStatus } from '../enums/UserStatus.js';
 
 // type UserRole = 'USER' | 'GYM_ADMIN' | 'ADMIN';
 
-type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
+// type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
 
 export interface IUser extends Document {
   id: string;
@@ -56,8 +57,8 @@ const userSchema = new Schema<IUser>(
 
     status: {
       type: String,
-      enum: ['ACTIVE', 'INACTIVE', 'BLOCKED'],
-      default: 'ACTIVE',
+      enum: UserStatus,
+      default: UserStatus.ACTIVE,
     },
 
     isVerified: {

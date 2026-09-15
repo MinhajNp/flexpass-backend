@@ -3,10 +3,14 @@ import type { IAuthService } from '../interfaces/services/IAuthService.js';
 import { HttpStatus } from '../enums/HttpStatus.js';
 import { env } from '../config/env.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import type { IOtpService } from '../interfaces/services/IOtpService.js';
 
 export class AuthController {
   // Dependency Injection
-  constructor(private authService: IAuthService) {}
+  constructor(
+    private authService: IAuthService,
+    private otpService: IOtpService,
+  ) {}
 
   // ==============================
   // LOGIN
@@ -44,11 +48,23 @@ export class AuthController {
   // ==============================
 
   refresh = asyncHandler(async (req: Request, res: Response) => {
-    const response = await this.authService.refresh(
-      req.cookies.refreshToken,
-    );
+    const response = await this.authService.refresh(req.cookies.refreshToken);
 
     res.json(response);
+  });
+
+  // ==============================
+  // VERIFY OTP
+  // ==============================
+
+  verifyOtp = asyncHandler(async (req: Request, res: Response) => {
+    const { userId, otp } = req.body;
+
+    await this.otpService.verifyOtp(userId, otp);
+
+    res.json({
+      message: 'Email verified successfully',
+    });
   });
 
   // ==============================
