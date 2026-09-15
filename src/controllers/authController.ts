@@ -68,6 +68,20 @@ export class AuthController {
   });
 
   // ==============================
+// RESEND OTP
+// ==============================
+
+resendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.body;
+
+  await this.otpService.resendOtp(userId);
+
+  res.json({
+    message: 'OTP resent successfully',
+  });
+});
+
+  // ==============================
   // LOGOUT
   // ==============================
 

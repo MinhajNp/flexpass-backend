@@ -6,6 +6,7 @@ import { generateOtp } from '../utils/otp.js';
 import { UnauthorizedError } from '../errors/UnauthorizedError.js';
 import type { IUserRepository } from '../interfaces/repositories/IUserRepository.js';
 import type { IOtpService } from '../interfaces/services/IOtpService.js';
+import { ConflictError } from '../errors/ConflictError.js';
 
 const MAX_OTP_ATTEMPTS = 5;
 
@@ -78,4 +79,29 @@ export class OtpService implements IOtpService {
     // Mark the user as verified after successful OTP verification.
     await this.userRepository.updateVerificationStatus(userId, true);
   }
+
+  // ==============================
+// RESEND OTP
+// ==============================
+
+async resendOtp(userId: string): Promise<void> {
+  const user = await this.userRepository.findById(userId);
+
+  if (!user) {
+    throw new UnauthorizedError('User not found');
+  }
+
+  if (user.isVerified) {
+    throw new ConflictError('Email is already verified');
+  }
+
+  // Remove previous OTP before creating a new one.
+  const existingOtp = await this.otpRepository.findByUserId(userId);
+
+  if (existingOtp) {
+    await this.otpRepository.deleteById(existingOtp._id.toString());
+  }
+
+  await this.sendOtp(userId, user.email);
+}
 }
