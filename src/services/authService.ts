@@ -17,6 +17,7 @@ import {
   verifyRefreshToken,
 } from '../utils/jwt.js';
 import type { IOtpService } from '../interfaces/services/IOtpService.js';
+import { OtpPurpose } from '../models/otpModel.js';
 
 export class AuthService implements IAuthService {
   // Dependency Injection
@@ -82,7 +83,11 @@ export class AuthService implements IAuthService {
 
     const user = await this.userRepository.create(userData);
 
-    await this.otpService.sendOtp(user._id.toString(), user.email);
+    await this.otpService.sendOtp(
+      user._id.toString(),
+      user.email,
+      OtpPurpose.EMAIL_VERIFICATION,
+    );
 
     return {
       message: 'User registered successfully',
@@ -116,5 +121,23 @@ export class AuthService implements IAuthService {
     return {
       accessToken: newAccessToken,
     };
+  };
+
+  // ==============================
+  // RESET PASSWORD
+  // ==============================
+
+  resetPassword = async (
+    userId: string,
+    otp: string,
+    newPassword: string,
+  ): Promise<void> => {
+    // Verify this OTP is specifically for password reset.
+    await this.otpService.verifyOtp(userId, otp, OtpPurpose.PASSWORD_RESET);
+
+    // Never store the new password in plain text.
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.userRepository.updatePassword(userId, hashedPassword);
   };
 }

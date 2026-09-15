@@ -7,6 +7,7 @@ import { UnauthorizedError } from '../errors/UnauthorizedError.js';
 import type { IUserRepository } from '../interfaces/repositories/IUserRepository.js';
 import type { IOtpService } from '../interfaces/services/IOtpService.js';
 import { ConflictError } from '../errors/ConflictError.js';
+import { OtpPurpose } from '../models/otpModel.js';
 
 const MAX_OTP_ATTEMPTS = 5;
 
@@ -20,7 +21,11 @@ export class OtpService implements IOtpService {
   // SEND OTP
   // ==============================
 
-  async sendOtp(userId: string, email: string): Promise<void> {
+  async sendOtp(
+    userId: string,
+    email: string,
+    purpose: OtpPurpose,
+  ): Promise<void> {
     const otp = generateOtp();
 
     // Store only the hash, never the actual OTP.
@@ -28,12 +33,12 @@ export class OtpService implements IOtpService {
 
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Convert string ID to MongoDB ObjectId.
     await this.otpRepository.create({
       userId: new Schema.Types.ObjectId(userId),
       otpHash,
       expiresAt,
       attempts: 0,
+      purpose,
     });
 
     await emailService.sendOtp(email, otp);
@@ -42,10 +47,16 @@ export class OtpService implements IOtpService {
   // ==============================
   // VERIFY OTP
   // ==============================
-  async verifyOtp(userId: string, otp: string): Promise<void> {
+
+  async verifyOtp(
+    userId: string,
+    otp: string,
+    purpose: OtpPurpose,
+  ): Promise<void> {
     const otpRecord = await this.otpRepository.findByUserId(userId);
 
-    if (!otpRecord) {
+    // OTP must belong to the requested purpose.
+    if (!otpRecord || otpRecord.purpose !== purpose) {
       throw new UnauthorizedError('Invalid or expired OTP');
     }
 
@@ -76,32 +87,53 @@ export class OtpService implements IOtpService {
     // OTP can only be used once.
     await this.otpRepository.deleteById(otpRecord._id.toString());
 
-    // Mark the user as verified after successful OTP verification.
-    await this.userRepository.updateVerificationStatus(userId, true);
+    // Only email-verification OTP should verify the user.
+    if (purpose === OtpPurpose.EMAIL_VERIFICATION) {
+      await this.userRepository.updateVerificationStatus(userId, true);
+    }
   }
 
   // ==============================
-// RESEND OTP
-// ==============================
+  // RESEND OTP
+  // ==============================
 
-async resendOtp(userId: string): Promise<void> {
-  const user = await this.userRepository.findById(userId);
+  async resendOtp(userId: string): Promise<void> {
+    const user = await this.userRepository.findById(userId);
 
-  if (!user) {
-    throw new UnauthorizedError('User not found');
+    if (!user) {
+      throw new UnauthorizedError('User not found');
+    }
+
+    if (user.isVerified) {
+      throw new ConflictError('Email is already verified');
+    }
+
+    // Remove previous OTP before creating a new one.
+    const existingOtp = await this.otpRepository.findByUserId(userId);
+
+    if (existingOtp) {
+      await this.otpRepository.deleteById(existingOtp._id.toString());
+    }
+
+    await this.sendOtp(userId, user.email, OtpPurpose.EMAIL_VERIFICATION);
   }
 
-  if (user.isVerified) {
-    throw new ConflictError('Email is already verified');
+  // ==============================
+  // FORGOT PASSWORD
+  // ==============================
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      // Same response prevents revealing whether the email exists.
+      throw new UnauthorizedError('Invalid email');
+    }
+
+    await this.sendOtp(
+      user._id.toString(),
+      user.email,
+      OtpPurpose.PASSWORD_RESET,
+    );
   }
-
-  // Remove previous OTP before creating a new one.
-  const existingOtp = await this.otpRepository.findByUserId(userId);
-
-  if (existingOtp) {
-    await this.otpRepository.deleteById(existingOtp._id.toString());
-  }
-
-  await this.sendOtp(userId, user.email);
-}
 }

@@ -17,4 +17,6 @@ export interface IUserRepository {
     userId: string,
     isVerified: boolean,
   ): Promise<IUser | null>;
+
+  updatePassword(userId: string, password: string): Promise<IUser | null>;
 }

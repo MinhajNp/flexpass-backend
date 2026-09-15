@@ -4,6 +4,7 @@ import { HttpStatus } from '../enums/HttpStatus.js';
 import { env } from '../config/env.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import type { IOtpService } from '../interfaces/services/IOtpService.js';
+import { OtpPurpose } from '../models/otpModel.js';
 
 export class AuthController {
   // Dependency Injection
@@ -60,7 +61,7 @@ export class AuthController {
   verifyOtp = asyncHandler(async (req: Request, res: Response) => {
     const { userId, otp } = req.body;
 
-    await this.otpService.verifyOtp(userId, otp);
+    await this.otpService.verifyOtp(userId, otp, OtpPurpose.EMAIL_VERIFICATION);
 
     res.json({
       message: 'Email verified successfully',
@@ -68,18 +69,44 @@ export class AuthController {
   });
 
   // ==============================
-// RESEND OTP
-// ==============================
+  // RESEND OTP
+  // ==============================
 
-resendOtp = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.body;
+  resendOtp = asyncHandler(async (req: Request, res: Response) => {
+    const { userId } = req.body;
 
-  await this.otpService.resendOtp(userId);
+    await this.otpService.resendOtp(userId);
 
-  res.json({
-    message: 'OTP resent successfully',
+    res.json({
+      message: 'OTP resent successfully',
+    });
   });
-});
+
+  // ==============================
+  // FORGOT PASSWORD
+  // ==============================
+
+  forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+    await this.otpService.forgotPassword(req.body.email);
+
+    res.json({
+      message: 'Password reset OTP sent successfully',
+    });
+  });
+
+  // ==============================
+  // RESET PASSWORD
+  // ==============================
+
+  resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { userId, otp, newPassword } = req.body;
+
+    await this.authService.resetPassword(userId, otp, newPassword);
+
+    res.json({
+      message: 'Password reset successfully',
+    });
+  });
 
   // ==============================
   // LOGOUT
