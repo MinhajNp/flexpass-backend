@@ -7,7 +7,7 @@ export interface LoginDTO {
 
 export interface AccessTokenPayload {
   userId: string;
-  role: string;
+  role: UserRole;
 }
 
 export interface LoginResponseDTO {
@@ -30,6 +30,7 @@ export interface CreateUserDTO {
 
 export interface RegisterResponseDTO {
   message: string;
+  userId: string;
 }
 
 export interface RefreshTokenPayload {

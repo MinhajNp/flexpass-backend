@@ -1,12 +1,26 @@
-import { AuthController } from '../controllers/authController.js';
+import { OtpRepository } from '../repositories/otpRepository.js';
 import { UserRepository } from '../repositories/userRepository.js';
+import { OtpService } from '../services/otpService.js';
 import { AuthService } from '../services/authService.js';
+import { AuthController } from '../controllers/authController.js';
 
-// auth
+// ==============================
+// REPOSITORIES
+// ==============================
+
 const userRepository = new UserRepository();
+const otpRepository = new OtpRepository();
 
-const authService = new AuthService(userRepository);
+// ==============================
+// SERVICES
+// ==============================
 
-const authController = new AuthController(authService);
+const otpService = new OtpService(otpRepository, userRepository);
 
-export { authController };
+const authService = new AuthService(userRepository, otpService);
+
+// ==============================
+// CONTROLLERS
+// ==============================
+
+export const authController = new AuthController(authService, otpService);

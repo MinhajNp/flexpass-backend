@@ -2,44 +2,80 @@ import type { Request, Response } from 'express';
 import type { IAuthService } from '../interfaces/services/IAuthService.js';
 import { HttpStatus } from '../enums/HttpStatus.js';
 import { env } from '../config/env.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import type { IOtpService } from '../interfaces/services/IOtpService.js';
 
 export class AuthController {
-  constructor(private authService: IAuthService) {}
+  // Dependency Injection
+  constructor(
+    private authService: IAuthService,
+    private otpService: IOtpService,
+  ) {}
 
-  // Login---------------------------------------------------------------------------------------------------------------
-  login = async (req: Request, res: Response): Promise<void> => {
+  // ==============================
+  // LOGIN
+  // ==============================
+
+  login = asyncHandler(async (req: Request, res: Response) => {
     const { accessToken, refreshToken } = await this.authService.login(
       req.body,
     );
 
-    //set cookie
+    // Refresh token is stored in an HTTP-only cookie.
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
+
+    // Access token is returned to the frontend.
     res.json(accessToken);
-  };
+  });
 
-  // Register-----------------------------------------------------------------------------------------------------------------------------
-  register = async (req: Request, res: Response): Promise<void> => {
+  // ==============================
+  // REGISTER
+  // ==============================
+
+  register = asyncHandler(async (req: Request, res: Response) => {
     const response = await this.authService.register(req.body);
+
     res.status(HttpStatus.CREATED).json(response);
-  };
+  });
 
-  // Refresh------------------------------------------------------------------------------------------------------------------------------
-  refresh = async (req: Request, res: Response): Promise<void> => {
+  // ==============================
+  // REFRESH TOKEN
+  // ==============================
+
+  refresh = asyncHandler(async (req: Request, res: Response) => {
     const response = await this.authService.refresh(req.cookies.refreshToken);
-    res.json(response);
-  };
 
-  // Logout--------------------------------------------------------------------------------------------------------------------------------
-  logout = async (req: Request, res: Response): Promise<void> => {
+    res.json(response);
+  });
+
+  // ==============================
+  // VERIFY OTP
+  // ==============================
+
+  verifyOtp = asyncHandler(async (req: Request, res: Response) => {
+    const { userId, otp } = req.body;
+
+    await this.otpService.verifyOtp(userId, otp);
+
+    res.json({
+      message: 'Email verified successfully',
+    });
+  });
+
+  // ==============================
+  // LOGOUT
+  // ==============================
+
+  logout = asyncHandler(async (_req: Request, res: Response) => {
     res.clearCookie('refreshToken');
 
     res.json({
       message: 'Logout successful',
     });
-  };
+  });
 }
