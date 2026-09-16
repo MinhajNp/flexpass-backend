@@ -8,6 +8,7 @@ import type { IUserRepository } from '../interfaces/repositories/IUserRepository
 import type { IOtpService } from '../interfaces/services/IOtpService.js';
 import { ConflictError } from '../errors/ConflictError.js';
 import { OtpPurpose } from '../models/otpModel.js';
+import { AuthMessages } from '../constants/authMessages.js';
 
 const MAX_OTP_ATTEMPTS = 5;
 
@@ -57,21 +58,19 @@ export class OtpService implements IOtpService {
 
     // OTP must belong to the requested purpose.
     if (!otpRecord || otpRecord.purpose !== purpose) {
-      throw new UnauthorizedError('Invalid or expired OTP');
+      throw new UnauthorizedError(AuthMessages.OTP_INVALID_OR_EXPIRED);
     }
 
     if (otpRecord.expiresAt < new Date()) {
       await this.otpRepository.deleteById(otpRecord._id.toString());
 
-      throw new UnauthorizedError('OTP has expired');
+      throw new UnauthorizedError(AuthMessages.OTP_EXPIRED);
     }
 
     if (otpRecord.attempts >= MAX_OTP_ATTEMPTS) {
       await this.otpRepository.deleteById(otpRecord._id.toString());
 
-      throw new UnauthorizedError(
-        'Maximum OTP attempts exceeded. Please request a new OTP.',
-      );
+      throw new UnauthorizedError(AuthMessages.OTP_MAX_ATTEMPTS);
     }
 
     const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
@@ -81,7 +80,7 @@ export class OtpService implements IOtpService {
         attempts: otpRecord.attempts + 1,
       });
 
-      throw new UnauthorizedError('Invalid OTP');
+      throw new UnauthorizedError(AuthMessages.OTP_INVALID_OR_EXPIRED);
     }
 
     // OTP can only be used once.
@@ -101,11 +100,11 @@ export class OtpService implements IOtpService {
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new UnauthorizedError('User not found');
+      throw new UnauthorizedError(AuthMessages.USER_NOT_FOUND);
     }
 
     if (user.isVerified) {
-      throw new ConflictError('Email is already verified');
+      throw new ConflictError(AuthMessages.EMAIL_ALREADY_VERIFIED);
     }
 
     // Remove previous OTP before creating a new one.
@@ -126,8 +125,7 @@ export class OtpService implements IOtpService {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
-      // Same response prevents revealing whether the email exists.
-      throw new UnauthorizedError('Invalid email');
+      throw new UnauthorizedError(AuthMessages.USER_NOT_FOUND);
     }
 
     await this.sendOtp(
