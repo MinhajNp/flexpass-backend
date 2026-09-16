@@ -17,6 +17,8 @@ import {
   verifyRefreshToken,
 } from '../utils/jwt.js';
 import type { IOtpService } from '../interfaces/services/IOtpService.js';
+import { OtpPurpose } from '../models/otpModel.js';
+import { AuthMessages } from '../constants/authMessages.js';
 
 export class AuthService implements IAuthService {
   // Dependency Injection
@@ -33,14 +35,13 @@ export class AuthService implements IAuthService {
     const user = await this.userRepository.findByEmail(data.email);
 
     if (!user) {
-      // dont reveal whether the email exists.
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError(AuthMessages.INVALID_CREDENTIALS);
     }
 
     const isPasswordValid = await bcrypt.compare(data.password, user.password);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedError('Invalid email or password');
+      throw new UnauthorizedError(AuthMessages.INVALID_CREDENTIALS);
     }
 
     // Access token -> short-lived, stored in frontend memory, used for API authentication.
@@ -68,7 +69,7 @@ export class AuthService implements IAuthService {
     const existingUser = await this.userRepository.findByEmail(data.email);
 
     if (existingUser) {
-      throw new ConflictError('Email already exists');
+      throw new ConflictError(AuthMessages.EMAIL_ALREADY_EXISTS);
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -82,10 +83,14 @@ export class AuthService implements IAuthService {
 
     const user = await this.userRepository.create(userData);
 
-    await this.otpService.sendOtp(user._id.toString(), user.email);
+    await this.otpService.sendOtp(
+      user._id.toString(),
+      user.email,
+      OtpPurpose.EMAIL_VERIFICATION,
+    );
 
     return {
-      message: 'User registered successfully',
+      message: AuthMessages.USER_REGISTERED,
       userId: user._id.toString(),
     };
   };
@@ -96,7 +101,7 @@ export class AuthService implements IAuthService {
 
   refresh = async (refreshToken: string): Promise<RefreshResponseDTO> => {
     if (!refreshToken) {
-      throw new UnauthorizedError('Invalid or expired token');
+      throw new UnauthorizedError(AuthMessages.TOKEN_INVALID_OR_EXPIRED);
     }
 
     // Refresh token contains only userId, not the full user data.
@@ -105,7 +110,7 @@ export class AuthService implements IAuthService {
     const user = await this.userRepository.findById(verifiedToken.userId);
 
     if (!user) {
-      throw new UnauthorizedError('User not found');
+      throw new UnauthorizedError(AuthMessages.USER_NOT_FOUND);
     }
 
     const newAccessToken = generateAccessToken({
@@ -116,5 +121,23 @@ export class AuthService implements IAuthService {
     return {
       accessToken: newAccessToken,
     };
+  };
+
+  // ==============================
+  // RESET PASSWORD
+  // ==============================
+
+  resetPassword = async (
+    userId: string,
+    otp: string,
+    newPassword: string,
+  ): Promise<void> => {
+    // Verify this OTP is specifically for password reset.
+    await this.otpService.verifyOtp(userId, otp, OtpPurpose.PASSWORD_RESET);
+
+    // Never store the new password in plain text.
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.userRepository.updatePassword(userId, hashedPassword);
   };
 }

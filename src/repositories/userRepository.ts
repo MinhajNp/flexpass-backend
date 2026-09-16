@@ -61,4 +61,15 @@ export class UserRepository
   ): Promise<IUser | null> {
     return this.model.findByIdAndUpdate(userId, { isVerified }, { new: true });
   }
+
+  // ==============================
+  // UPDATE PASSWORD
+  // ==============================
+
+  async updatePassword(
+    userId: string,
+    password: string,
+  ): Promise<IUser | null> {
+    return this.model.findByIdAndUpdate(userId, { password }, { new: true });
+  }
 }

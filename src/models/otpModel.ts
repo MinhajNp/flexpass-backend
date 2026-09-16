@@ -1,10 +1,16 @@
 import { model, Schema, type Document } from 'mongoose';
 
+export enum OtpPurpose {
+  EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
+  PASSWORD_RESET = 'PASSWORD_RESET',
+}
+
 interface IOtp extends Document {
   userId: Schema.Types.ObjectId;
   otpHash: string;
   expiresAt: Date;
   attempts: number;
+  purpose: OtpPurpose;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -30,6 +36,11 @@ const otpSchema = new Schema<IOtp>(
     attempts: {
       type: Number,
       default: 0,
+    },
+    purpose: {
+      type: String,
+      enum: Object.values(OtpPurpose),
+      required: true,
     },
   },
   {
